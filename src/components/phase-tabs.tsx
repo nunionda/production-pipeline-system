@@ -9,6 +9,7 @@ interface PhaseTabsProps {
 
 const phases = [
   { name: "시나리오", segment: "script" },
+  { name: "프리프로덕션", segment: "pre-production" },
   { name: "스케줄", segment: "schedule" },
   { name: "촬영", segment: "production" },
   { name: "포스트", segment: "post" },
