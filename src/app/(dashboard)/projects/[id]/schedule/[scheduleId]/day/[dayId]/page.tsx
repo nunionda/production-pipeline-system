@@ -10,7 +10,7 @@ export default async function ShootingDayPage({
 }) {
   const { id, scheduleId, dayId } = await params;
 
-  const [day, allDays, allScenes] = await Promise.all([
+  const [day, allDays, allScenes, projectProps, projectCostumes] = await Promise.all([
     db.shootingDay.findUnique({
       where: { id: dayId },
       include: {
@@ -37,6 +37,16 @@ export default async function ShootingDayPage({
       where: { script: { projectId: id } },
       orderBy: { number: "asc" },
       select: { id: true, number: true, location: true, intExt: true, timeOfDay: true },
+    }),
+    db.prop.findMany({
+      where: { projectId: id },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    db.costume.findMany({
+      where: { projectId: id },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
     }),
   ]);
 
@@ -96,6 +106,8 @@ export default async function ShootingDayPage({
         dayId={dayId}
         day={day}
         unassignedScenes={unassignedScenes}
+        projectProps={projectProps}
+        projectCostumes={projectCostumes}
       />
     </div>
   );

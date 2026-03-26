@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nunionda",
+      "runtimeExecutable": "/Users/daniel/.bun/bin/bun",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "/Users/daniel/dev/antigravity-dev/nunionda",
+      "port": 3000
+    }
+  ]
+}

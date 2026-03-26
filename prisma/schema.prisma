@@ -177,8 +177,9 @@ model Scene {
   vfxItems    SceneVFX[]
 
   // 1:N
-  shots       Shot[]
+  shots         Shot[]
   sceneStatuses SceneStatus[]
+  fieldChanges  FieldChange[]
 
   @@unique([scriptId, number])
 }
@@ -225,6 +226,7 @@ model Prop {
 
   project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   scenes    SceneProp[]
+  assetLogs DailyAssetLog[]
 
   @@unique([projectId, name])
 }
@@ -238,6 +240,7 @@ model Costume {
 
   project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   scenes      SceneCostume[]
+  assetLogs   DailyAssetLog[]
 
   @@unique([projectId, name])
 }
@@ -401,6 +404,8 @@ model ShootingDay {
   callSheets    CallSheet[]
   dailyReports  DailyReport[]
   sceneStatuses SceneStatus[]
+  fieldChanges  FieldChange[]
+  assetLogs     DailyAssetLog[]
 }
 
 // ──────────────────────────────────────────────
@@ -453,6 +458,49 @@ enum ShootingStatus {
   SHOOTING    // 촬영중
   COMPLETED   // 완료
   RESHOOT     // 재촬영
+}
+
+model FieldChange {
+  id            String           @id @default(cuid())
+  shootingDayId String
+  sceneId       String?
+  changeType    FieldChangeType
+  description   String
+  approvedBy    String?          // 승인자 이름
+  createdAt     DateTime         @default(now())
+
+  shootingDay   ShootingDay      @relation(fields: [shootingDayId], references: [id], onDelete: Cascade)
+  scene         Scene?           @relation(fields: [sceneId], references: [id], onDelete: SetNull)
+}
+
+enum FieldChangeType {
+  DIALOGUE    // 대사 변경
+  BLOCKING    // 동선 변경
+  PROP        // 소품 변경
+  SCENE_ADD   // 씬 추가
+  SCENE_DELETE // 씬 삭제
+  OTHER       // 기타
+}
+
+model DailyAssetLog {
+  id            String          @id @default(cuid())
+  shootingDayId String
+  propId        String?
+  costumeId     String?
+  assetStatus   AssetLogStatus  @default(READY)
+  notes         String?
+  createdAt     DateTime        @default(now())
+
+  shootingDay   ShootingDay     @relation(fields: [shootingDayId], references: [id], onDelete: Cascade)
+  prop          Prop?           @relation(fields: [propId], references: [id], onDelete: SetNull)
+  costume       Costume?        @relation(fields: [costumeId], references: [id], onDelete: SetNull)
+}
+
+enum AssetLogStatus {
+  READY       // 준비완료
+  IN_USE      // 사용중
+  DAMAGED     // 손상
+  LOST        // 분실
 }
 
 // ──────────────────────────────────────────────
