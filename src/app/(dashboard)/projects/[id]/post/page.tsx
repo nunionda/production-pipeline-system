@@ -1,15 +1,42 @@
+import { db } from "@/lib/db";
+import { notFound } from "next/navigation";
+import { PostProductionClient } from "./post-client";
+
 export default async function PostProductionPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const project = await db.project.findUnique({ where: { id }, select: { title: true } });
+  if (!project) notFound();
+
+  const [editVersions, vfxShots, soundTasks, colorSessions] = await Promise.all([
+    db.editVersion.findMany({
+      where: { projectId: id },
+      orderBy: { versionNumber: "desc" },
+    }),
+    db.vFXShot.findMany({
+      where: { projectId: id },
+      orderBy: [{ status: "asc" }, { shotName: "asc" }],
+    }),
+    db.soundTask.findMany({
+      where: { projectId: id },
+      orderBy: [{ type: "asc" }, { createdAt: "asc" }],
+    }),
+    db.colorGradingSession.findMany({
+      where: { projectId: id },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+
   return (
-    <div className="p-6">
-      <h2 className="text-lg font-semibold text-gray-900">포스트프로덕션</h2>
-      <p className="mt-2 text-sm text-gray-500">
-        Sprint 5에서 구현 예정 — 편집/VFX/사운드/색보정 추적
-      </p>
-    </div>
+    <PostProductionClient
+      projectId={id}
+      initialEditVersions={editVersions}
+      initialVfxShots={vfxShots}
+      initialSoundTasks={soundTasks}
+      initialColorSessions={colorSessions}
+    />
   );
 }

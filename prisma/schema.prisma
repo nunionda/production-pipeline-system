@@ -71,6 +71,12 @@ model Project {
   costumes    Costume[]
   locations   Location[]
   vfxItems    VFX[]
+
+  // Post-production
+  editVersions         EditVersion[]
+  vfxShots             VFXShot[]
+  soundTasks           SoundTask[]
+  colorGradingSessions ColorGradingSession[]
 }
 
 model ProjectMember {
@@ -501,6 +507,97 @@ enum AssetLogStatus {
   IN_USE      // 사용중
   DAMAGED     // 손상
   LOST        // 분실
+}
+
+// ──────────────────────────────────────────────
+// 포스트프로덕션 (Post-production)
+// ──────────────────────────────────────────────
+
+model EditVersion {
+  id            String      @id @default(cuid())
+  projectId     String
+  versionNumber Int
+  editor        String?
+  status        EditStatus  @default(ROUGH_CUT)
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  project       Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+enum EditStatus {
+  ROUGH_CUT    // 러프컷
+  FINE_CUT     // 파인컷
+  PICTURE_LOCK // 픽처락
+  FINAL        // 최종
+}
+
+model VFXShot {
+  id             String      @id @default(cuid())
+  projectId      String
+  shotName       String
+  description    String?
+  vendor         String?
+  status         VFXStatus   @default(WAITING)
+  deadline       DateTime?
+  revisionCount  Int         @default(0)
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+enum VFXStatus {
+  WAITING    // 대기
+  IN_PROGRESS // 작업중
+  REVIEW     // 리뷰
+  REVISION   // 수정
+  APPROVED   // 승인
+}
+
+model SoundTask {
+  id         String         @id @default(cuid())
+  projectId  String
+  type       SoundTaskType
+  description String?
+  assignee   String?
+  status     PostTaskStatus @default(PENDING)
+  deadline   DateTime?
+  notes      String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+enum SoundTaskType {
+  ADR         // ADR (재녹음)
+  FOLEY       // 폴리
+  SFX         // 효과음
+  MUSIC       // 음악
+  MIX         // 믹싱
+  MASTER      // 마스터링
+}
+
+model ColorGradingSession {
+  id          String         @id @default(cuid())
+  projectId   String
+  colorist    String?
+  status      PostTaskStatus @default(PENDING)
+  sessionDate DateTime?
+  notes       String?
+  createdAt   DateTime       @default(now())
+
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+enum PostTaskStatus {
+  PENDING     // 대기
+  IN_PROGRESS // 진행중
+  COMPLETED   // 완료
+  ON_HOLD     // 보류
 }
 
 // ──────────────────────────────────────────────
