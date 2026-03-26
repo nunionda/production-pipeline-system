@@ -77,6 +77,11 @@ model Project {
   vfxShots             VFXShot[]
   soundTasks           SoundTask[]
   colorGradingSessions ColorGradingSession[]
+
+  // Delivery
+  qcReports            QCReport[]
+  masterFiles          MasterFile[]
+  deliveryTargets      DeliveryTarget[]
 }
 
 model ProjectMember {
@@ -598,6 +603,82 @@ enum PostTaskStatus {
   IN_PROGRESS // 진행중
   COMPLETED   // 완료
   ON_HOLD     // 보류
+}
+
+// ──────────────────────────────────────────────
+// 납품 (Delivery)
+// ──────────────────────────────────────────────
+
+model QCReport {
+  id             String      @id @default(cuid())
+  projectId      String
+  version        String      // "v1", "v2", etc.
+  status         QCStatus    @default(IN_PROGRESS)
+  issues         Json?       // [{description, severity, resolved}]
+  technicalSpecs String?
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+enum QCStatus {
+  IN_PROGRESS  // 진행중
+  PASSED       // 통과
+  FAILED       // 불합격
+}
+
+model MasterFile {
+  id          String           @id @default(cuid())
+  projectId   String
+  name        String
+  format      String           // MOV, MXF, MP4, etc.
+  resolution  String?          // 4K, HD, etc.
+  codec       String?
+  duration    String?          // HH:MM:SS
+  fileSize    String?          // "120GB"
+  status      MasterFileStatus @default(CREATING)
+  notes       String?
+  createdAt   DateTime         @default(now())
+
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+enum MasterFileStatus {
+  CREATING   // 생성중
+  COMPLETED  // 완료
+  VERIFIED   // 검증완료
+}
+
+model DeliveryTarget {
+  id            String               @id @default(cuid())
+  projectId     String
+  recipientName String
+  type          DeliveryTargetType
+  format        String?
+  deadline      DateTime?
+  status        DeliveryTargetStatus @default(PENDING)
+  notes         String?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  project       Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+enum DeliveryTargetType {
+  BROADCAST     // 방송사
+  OTT           // OTT
+  DISTRIBUTOR   // 배급사
+  INTERNATIONAL // 해외
+  OTHER         // 기타
+}
+
+enum DeliveryTargetStatus {
+  PENDING    // 대기
+  DELIVERED  // 전달완료
+  APPROVED   // 승인
+  REJECTED   // 반려
 }
 
 // ──────────────────────────────────────────────
