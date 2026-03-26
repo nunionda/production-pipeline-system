@@ -1,0 +1,182 @@
+{
+  "scenes": [
+    {
+      "number": 1,
+      "intExt": "INT",
+      "location": "수진의 아파트 거실",
+      "timeOfDay": "낮",
+      "description": "수진이 소파에 앉아 노트북을 보고 있다.",
+      "characters": [
+        {
+          "name": "수진",
+          "description": "30대, 단정한 셔츠",
+          "action": "노트북을 보고 있다"
+        },
+        {
+          "name": "민호",
+          "description": "40대, 정장",
+          "action": "들어온다"
+        }
+      ],
+      "props": [
+        {
+          "name": "노트북",
+          "usage": "수진이 보고 있다"
+        },
+        {
+          "name": "커피잔",
+          "usage": "테이블 위에 놓여 있다"
+        },
+        {
+          "name": "서류 뭉치",
+          "usage": "테이블 위에 놓여 있다"
+        }
+      ],
+      "costumes": [
+        {
+          "character": "수진",
+          "description": "단정한 셔츠"
+        },
+        {
+          "character": "민호",
+          "description": "정장"
+        }
+      ],
+      "locations": [
+        {
+          "name": "수진의 아파트 거실",
+          "features": []
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "intExt": "INT",
+      "location": "카페",
+      "timeOfDay": "밤",
+      "description": "민호가 창가 자리에 앉아 아메리카노를 마시고 있다.",
+      "characters": [
+        {
+          "name": "민호",
+          "description": "40대, 정장 (추정)",
+          "action": "아메리카노를 마시고 있다"
+        },
+        {
+          "name": "수진",
+          "description": "30대 (추정)",
+          "action": "들어와서 맞은편에 앉는다"
+        }
+      ],
+      "props": [
+        {
+          "name": "아메리카노",
+          "usage": "민호가 마시고 있다"
+        },
+        {
+          "name": "핸드폰",
+          "usage": "테이블 위에 놓여 있다"
+        },
+        {
+          "name": "차 키",
+          "usage": "테이블 위에 놓여 있다"
+        }
+      ],
+      "costumes": [
+        {
+          "character": "민호",
+          "description": "정장 (추정)"
+        },
+        {
+          "character": "수진",
+          "description": "불명"
+        }
+      ],
+      "locations": [
+        {
+          "name": "카페",
+          "features": [
+            "창가 자리"
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "intExt": "EXT",
+      "location": "한강 공원 산책로",
+      "timeOfDay": "저녁",
+      "description": "수진과 민호가 나란히 걷고 있다. 석양이 한강에 비친다.",
+      "characters": [
+        {
+          "name": "수진",
+          "description": "30대",
+          "action": "걷고 있다"
+        },
+        {
+          "name": "민호",
+          "description": "40대",
+          "action": "걷고 있다"
+        }
+      ],
+      "props": [],
+      "costumes": [
+        {
+          "character": "수진",
+          "description": "가디건"
+        },
+        {
+          "character": "민호",
+          "description": "넥타이를 풀었다"
+        }
+      ],
+      "locations": [
+        {
+          "name": "한강 공원 산책로",
+          "features": [
+            "한강",
+            "석양"
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "intExt": "INT",
+      "location": "수진의 아파트 현관",
+      "timeOfDay": "밤",
+      "description": "수진이 현관문을 열고 들어온다.",
+      "characters": [
+        {
+          "name": "수진",
+          "description": "30대",
+          "action": "현관문을 열고 들어온다, 코트를 벗어 옷걸이에 건다"
+        }
+      ],
+      "props": [
+        {
+          "name": "열쇠",
+          "usage": "신발장 위에 놓여 있다"
+        },
+        {
+          "name": "우편물",
+          "usage": "신발장 위에 놓여 있다"
+        }
+      ],
+      "costumes": [
+        {
+          "character": "수진",
+          "description": "코트"
+        }
+      ],
+      "locations": [
+        {
+          "name": "수진의 아파트 현관",
+          "features": [
+            "신발장",
+            "옷걸이"
+          ]
+        }
+      ]
+    }
+  ]
+}
