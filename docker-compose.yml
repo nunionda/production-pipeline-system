@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: nunionda-db
+    environment:
+      POSTGRES_USER: nunionda
+      POSTGRES_PASSWORD: nunionda_dev
+      POSTGRES_DB: nunionda
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: nunionda-app
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://nunionda:nunionda_dev@db:5432/nunionda?schema=public"
+      NEXTAUTH_SECRET: "${NEXTAUTH_SECRET}"
+      NEXTAUTH_URL: "http://localhost:3000"
+    depends_on:
+      - db
+    volumes:
+      - uploads:/data/uploads
+
+volumes:
+  pgdata:
+  uploads:
