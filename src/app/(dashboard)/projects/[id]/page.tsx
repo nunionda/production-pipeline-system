@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { PhaseTabs } from "@/components/phase-tabs";
 import { StatusBadge, phaseToStatus } from "@/components/status-badge";
 import { ArchiveButton } from "./archive-button";
+import { getActualAmount } from "@/lib/budget";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -84,7 +85,12 @@ export default async function ProjectDetailPage({ params }: Props) {
     // Budget summary
     db.budgetLine.findMany({
       where: { projectId: id },
-      select: { category: true, estimatedAmount: true, actualAmount: true },
+      select: {
+        category: true,
+        estimatedAmount: true,
+        actualAmount: true,
+        expenses: { select: { amount: true } },
+      },
     }),
     // Reshoot scenes count
     db.sceneStatus.count({
@@ -126,14 +132,14 @@ export default async function ProjectDetailPage({ params }: Props) {
   const scenePercent = totalScenes > 0 ? Math.round((completedScenes / totalScenes) * 100) : 0;
 
   const totalEstimated = budgetLines.reduce((s, l) => s + l.estimatedAmount, 0);
-  const totalActual = budgetLines.reduce((s, l) => s + l.actualAmount, 0);
+  const totalActual = budgetLines.reduce((s, l) => s + getActualAmount(l), 0);
   const budgetPercent = totalEstimated > 0 ? Math.round((totalActual / totalEstimated) * 100) : 0;
 
   // Category-level overruns
   const categoryMap = new Map<string, { estimated: number; actual: number }>();
   for (const l of budgetLines) {
     const cur = categoryMap.get(l.category) ?? { estimated: 0, actual: 0 };
-    categoryMap.set(l.category, { estimated: cur.estimated + l.estimatedAmount, actual: cur.actual + l.actualAmount });
+    categoryMap.set(l.category, { estimated: cur.estimated + l.estimatedAmount, actual: cur.actual + getActualAmount(l) });
   }
   const overrunCategories = [...categoryMap.entries()]
     .filter(([, v]) => v.estimated > 0 && v.actual > v.estimated)

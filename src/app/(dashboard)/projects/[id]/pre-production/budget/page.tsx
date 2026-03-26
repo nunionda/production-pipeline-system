@@ -14,6 +14,9 @@ export default async function BudgetPage({
   const lines = await db.budgetLine.findMany({
     where: { projectId: id },
     orderBy: [{ category: "asc" }, { description: "asc" }],
+    include: {
+      expenses: { orderBy: { date: "desc" } },
+    },
   });
 
   return (

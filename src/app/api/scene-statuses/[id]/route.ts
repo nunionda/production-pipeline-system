@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { emitSceneStatusChanged } from "@/lib/sse-emitter";
 
 // PUT /api/scene-statuses/[id]
 export async function PUT(
@@ -18,5 +19,15 @@ export async function PUT(
       ...(notes !== undefined && { notes }),
     },
   });
+
+  // Emit SSE event to all live view clients watching this shooting day
+  if (status !== undefined) {
+    emitSceneStatusChanged({
+      sceneStatusId: sceneStatus.id,
+      status: sceneStatus.status,
+      shootingDayId: sceneStatus.shootingDayId,
+    });
+  }
+
   return NextResponse.json(sceneStatus);
 }

@@ -144,7 +144,19 @@ model BudgetLine {
   actualAmount    Int     @default(0)
   phase           ProjectPhase
 
-  project         Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project         Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  expenses        Expense[]
+}
+
+model Expense {
+  id           String     @id @default(cuid())
+  budgetLineId String
+  amount       Int        // KRW 원 단위
+  note         String?
+  date         DateTime
+  createdAt    DateTime   @default(now())
+
+  budgetLine   BudgetLine @relation(fields: [budgetLineId], references: [id], onDelete: Cascade)
 }
 
 // ──────────────────────────────────────────────
@@ -412,8 +424,9 @@ model ShootingDay {
   schedule     Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 
   // Relations
-  callSheets    CallSheet[]
-  dailyReports  DailyReport[]
+  callSheets       CallSheet[]
+  callSheetShares  CallSheetShare[]
+  dailyReports     DailyReport[]
   sceneStatuses SceneStatus[]
   fieldChanges  FieldChange[]
   assetLogs     DailyAssetLog[]
@@ -436,7 +449,38 @@ model CallSheet {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  shootingDay   ShootingDay @relation(fields: [shootingDayId], references: [id], onDelete: Cascade)
+  shootingDay   ShootingDay      @relation(fields: [shootingDayId], references: [id], onDelete: Cascade)
+  shares        CallSheetShare[]
+}
+
+model CallSheetShare {
+  id            String                  @id @default(cuid())
+  token         String                  @unique @default(uuid())
+  callSheetId   String
+  shootingDayId String
+  expiresAt     DateTime
+  viewCount     Int                     @default(0)
+  createdAt     DateTime                @default(now())
+
+  callSheet     CallSheet               @relation(fields: [callSheetId], references: [id], onDelete: Cascade)
+  shootingDay   ShootingDay             @relation(fields: [shootingDayId], references: [id], onDelete: Cascade)
+  confirmations CallSheetConfirmation[]
+
+  @@index([token])
+}
+
+model CallSheetConfirmation {
+  id          String         @id @default(cuid())
+  shareId     String
+  actorName   String
+  actorRole   String?
+  confirmedAt DateTime       @default(now())
+  ipAddress   String?
+  createdAt   DateTime       @default(now())
+
+  share       CallSheetShare @relation(fields: [shareId], references: [id], onDelete: Cascade)
+
+  @@index([shareId])
 }
 
 model DailyReport {

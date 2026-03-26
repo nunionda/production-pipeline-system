@@ -44,7 +44,15 @@ export default async function ScheduleDetailPage({
           </div>
           <p className="text-xs text-gray-400">총 {schedule.shootingDays.length}일</p>
         </div>
-        <AddShootingDayButton projectId={id} scheduleId={scheduleId} />
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/projects/${id}/schedule/${scheduleId}/dood`}
+            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Day-out-of-Days
+          </Link>
+          <AddShootingDayButton projectId={id} scheduleId={scheduleId} />
+        </div>
       </div>
 
       {schedule.shootingDays.length === 0 ? (

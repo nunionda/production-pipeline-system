@@ -11,6 +11,8 @@ type Phase =
   | "DELIVERY"
   | "COMPLETED";
 
+type Expense = { id: string; amount: number; note: string | null; date: string };
+
 type BudgetLine = {
   id: string;
   category: string;
@@ -18,7 +20,13 @@ type BudgetLine = {
   estimatedAmount: number;
   actualAmount: number;
   phase: Phase;
+  expenses?: Expense[];
 };
+
+function getLineActual(line: BudgetLine): number {
+  if (!line.expenses || line.expenses.length === 0) return line.actualAmount;
+  return line.expenses.reduce((s, e) => s + e.amount, 0);
+}
 
 const PHASE_LABELS: Record<Phase, string> = {
   DEVELOPMENT: "기획",
@@ -49,6 +57,8 @@ export function BudgetClient({
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [addingExpenseFor, setAddingExpenseFor] = useState<string | null>(null);
+  const [expenseForm, setExpenseForm] = useState({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
   const [form, setForm] = useState({
     category: "기타",
     description: "",
@@ -61,7 +71,7 @@ export function BudgetClient({
   const apiBase = `/api/projects/${projectId}/budget`;
 
   const totalEstimated = lines.reduce((s, l) => s + l.estimatedAmount, 0);
-  const totalActual = lines.reduce((s, l) => s + l.actualAmount, 0);
+  const totalActual = lines.reduce((s, l) => s + getLineActual(l), 0);
   const usagePercent = totalEstimated > 0 ? Math.round((totalActual / totalEstimated) * 100) : 0;
 
   // Group by category
@@ -116,6 +126,33 @@ export function BudgetClient({
     router.refresh();
   }
 
+  async function addExpense(lineId: string) {
+    if (!expenseForm.amount || !expenseForm.date) return;
+    setSaving(true);
+    const res = await fetch(`${apiBase}/${lineId}/expenses`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount: Number(expenseForm.amount),
+        note: expenseForm.note || null,
+        date: expenseForm.date,
+      }),
+    });
+    if (res.ok) {
+      const expense = await res.json();
+      setLines((prev) =>
+        prev.map((l) =>
+          l.id === lineId
+            ? { ...l, expenses: [expense, ...(l.expenses ?? [])] }
+            : l
+        )
+      );
+      setExpenseForm({ amount: "", note: "", date: new Date().toISOString().slice(0, 10) });
+      setAddingExpenseFor(null);
+    }
+    setSaving(false);
+  }
+
   return (
     <div className="space-y-6">
       {/* Summary */}
@@ -156,7 +193,7 @@ export function BudgetClient({
       {categories.map((cat) => {
         const catLines = lines.filter((l) => l.category === cat);
         const catEstimated = catLines.reduce((s, l) => s + l.estimatedAmount, 0);
-        const catActual = catLines.reduce((s, l) => s + l.actualAmount, 0);
+        const catActual = catLines.reduce((s, l) => s + getLineActual(l), 0);
         return (
           <div key={cat}>
             <div className="flex items-center justify-between mb-2">
@@ -203,37 +240,98 @@ export function BudgetClient({
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-900">{line.description}</p>
-                        <p className="text-xs text-gray-400">{PHASE_LABELS[line.phase]}</p>
-                      </div>
-                      <div className="flex items-center gap-4 ml-4">
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-gray-900">{formatKRW(line.estimatedAmount)}원</p>
-                          {line.actualAmount > 0 && (
-                            <p className={`text-xs ${line.actualAmount > line.estimatedAmount ? "text-red-500" : "text-green-600"}`}>
-                              집행 {formatKRW(line.actualAmount)}원
-                            </p>
-                          )}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-900">{line.description}</p>
+                          <p className="text-xs text-gray-400">{PHASE_LABELS[line.phase]}</p>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setEditingId(line.id);
-                              setEditForm({
-                                category: line.category,
-                                description: line.description,
-                                estimatedAmount: String(line.estimatedAmount),
-                                actualAmount: String(line.actualAmount),
-                                phase: line.phase,
-                              });
-                            }}
-                            className="text-xs text-gray-400 hover:text-gray-600">수정</button>
-                          <button onClick={() => deleteLine(line.id)}
-                            className="text-xs text-red-400 hover:text-red-600">삭제</button>
+                        <div className="flex items-center gap-4 ml-4">
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-gray-900">{formatKRW(line.estimatedAmount)}원</p>
+                            {getLineActual(line) > 0 && (
+                              <p className={`text-xs ${getLineActual(line) > line.estimatedAmount ? "text-red-500" : "text-green-600"}`}>
+                                집행 {formatKRW(getLineActual(line))}원
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setAddingExpenseFor(addingExpenseFor === line.id ? null : line.id)}
+                              className="text-xs text-green-600 hover:text-green-800">+ 지출</button>
+                            <button
+                              onClick={() => {
+                                setEditingId(line.id);
+                                setEditForm({
+                                  category: line.category,
+                                  description: line.description,
+                                  estimatedAmount: String(line.estimatedAmount),
+                                  actualAmount: String(line.actualAmount),
+                                  phase: line.phase,
+                                });
+                              }}
+                              className="text-xs text-gray-400 hover:text-gray-600">수정</button>
+                            <button onClick={() => deleteLine(line.id)}
+                              className="text-xs text-red-400 hover:text-red-600">삭제</button>
+                          </div>
                         </div>
                       </div>
+
+                      {/* Expense list */}
+                      {line.expenses && line.expenses.length > 0 && (
+                        <div className="border-t border-gray-100 pt-2 space-y-1">
+                          {line.expenses.map((e) => (
+                            <div key={e.id} className="flex items-center gap-2 text-xs text-gray-500">
+                              <span className="flex-1">{e.note || "—"}</span>
+                              <span>{new Date(e.date).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}</span>
+                              <span className="font-medium text-gray-700">{formatKRW(e.amount)}원</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Quick add expense form */}
+                      {addingExpenseFor === line.id && (
+                        <div className="border-t border-gray-100 pt-2 space-y-2">
+                          <div className="flex gap-2">
+                            <input
+                              autoFocus
+                              type="number"
+                              placeholder="금액 (원) *"
+                              value={expenseForm.amount}
+                              onChange={(e) => setExpenseForm((f) => ({ ...f, amount: e.target.value }))}
+                              className="flex-1 rounded border border-gray-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                            />
+                            <input
+                              type="date"
+                              value={expenseForm.date}
+                              onChange={(e) => setExpenseForm((f) => ({ ...f, date: e.target.value }))}
+                              className="rounded border border-gray-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                            />
+                          </div>
+                          <input
+                            placeholder="메모 (선택)"
+                            value={expenseForm.note}
+                            onChange={(e) => setExpenseForm((f) => ({ ...f, note: e.target.value }))}
+                            className="w-full rounded border border-gray-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => addExpense(line.id)}
+                              disabled={saving || !expenseForm.amount}
+                              className="rounded bg-green-600 px-2 py-1 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                            >
+                              추가
+                            </button>
+                            <button
+                              onClick={() => setAddingExpenseFor(null)}
+                              className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-600"
+                            >
+                              취소
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

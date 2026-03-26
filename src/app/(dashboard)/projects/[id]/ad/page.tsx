@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { AdConfirmSection } from "./ad-confirm-section";
 
 const STATUS_LABELS: Record<string, string> = {
   WAITING: "대기",
@@ -28,7 +29,7 @@ export default async function ADDashboardPage({
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const [project, todayDay, tomorrowDay, pendingProps, unconfirmedLocations] =
+  const [project, todayDay, tomorrowDay, pendingProps, unconfirmedLocations, todayShares] =
     await Promise.all([
       db.project.findUnique({
         where: { id },
@@ -65,6 +66,23 @@ export default async function ADDashboardPage({
       }),
       db.prop.count({ where: { projectId: id, status: "UNACQUIRED" } }),
       db.location.count({ where: { projectId: id, status: "UNCONFIRMED" } }),
+      db.callSheetShare.findMany({
+        where: {
+          shootingDay: {
+            schedule: { projectId: id },
+            date: { gte: today, lt: tomorrow },
+          },
+        },
+        include: {
+          confirmations: {
+            select: { actorName: true, actorRole: true, confirmedAt: true },
+            orderBy: { confirmedAt: "asc" },
+          },
+          callSheet: { select: { cast: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      }),
     ]);
 
   if (!project) notFound();
@@ -205,6 +223,15 @@ export default async function ADDashboardPage({
           </div>
         )}
       </section>
+
+      {/* 콜시트 확인 현황 */}
+      {todayShares.length > 0 && (
+        <AdConfirmSection
+          share={todayShares[0]}
+          projectId={id}
+          dayId={todayShares[0].shootingDayId}
+        />
+      )}
 
       {/* 준비 현황 */}
       <section className="space-y-2">

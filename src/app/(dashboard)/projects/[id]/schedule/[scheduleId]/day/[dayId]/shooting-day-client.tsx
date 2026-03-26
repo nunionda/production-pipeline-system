@@ -140,12 +140,24 @@ export function ShootingDayClient({
                 생성됨
               </span>
               <a
+                href={`/projects/${projectId}/schedule/${scheduleId}/day/${dayId}/live`}
+                target="_blank" rel="noopener noreferrer"
+                className="text-xs font-medium text-purple-700 hover:text-purple-900"
+              >
+                라이브 뷰 ↗
+              </a>
+              <a
                 href={`/api/projects/${projectId}/schedules/${scheduleId}/shooting-days/${dayId}/call-sheet/pdf`}
                 target="_blank" rel="noopener noreferrer"
                 className="text-xs font-medium text-blue-700 hover:text-blue-900"
               >
                 PDF 다운로드 ↓
               </a>
+              <ShareCallSheetButton
+                projectId={projectId}
+                scheduleId={scheduleId}
+                dayId={dayId}
+              />
             </>
           ) : (
             <button
@@ -753,6 +765,45 @@ function DailyReportTab({
 // ──────────────────────────────────────────────
 // Shared helpers
 // ──────────────────────────────────────────────
+
+function ShareCallSheetButton({
+  projectId,
+  scheduleId,
+  dayId,
+}: {
+  projectId: string;
+  scheduleId: string;
+  dayId: string;
+}) {
+  const [sharing, setSharing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function handleShare() {
+    setSharing(true);
+    const res = await fetch(
+      `/api/projects/${projectId}/schedules/${scheduleId}/shooting-days/${dayId}/call-sheet/share`,
+      { method: "POST" }
+    );
+    setSharing(false);
+    if (!res.ok) return;
+    const data = await res.json();
+    const url = `${window.location.origin}/c/${data.token}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <button
+      onClick={handleShare}
+      disabled={sharing}
+      className="text-xs font-medium text-green-700 hover:text-green-900 disabled:text-gray-400"
+    >
+      {sharing ? "생성 중…" : copied ? "링크 복사됨!" : "공유 링크"}
+    </button>
+  );
+}
 
 function SceneAssignDropdown({ scenes, onAssign }: { scenes: Scene[]; onAssign: (id: string) => void }) {
   const [open, setOpen] = useState(false);
