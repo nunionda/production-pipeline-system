@@ -2,18 +2,6 @@
 
 ## P2: High Priority
 
-### SSE 라이브뷰 EventSource 자동 재연결
-**What:** 라이브뷰 페이지에 EventSource 자동 재연결 로직 추가 (3초 백오프, 최대 3회 재시도)
-**Why:** 현장 모바일 네트워크가 순간 끊기면 EventSource가 무음 상태로 멈춤 — 씬 상태 업데이트가 다른 기기에 전달되지 않음
-**Pros:** 라이브뷰 신뢰성 대폭 향상, 현장 모바일 UX 핵심
-**Cons:** 없음 — ~20줄 추가, 복잡도 없음
-**Context:** Sprint 8c (라이브뷰) 구현 시 live view 컴포넌트에 추가. `EventSource` `onerror` 핸들러에서 setTimeout으로 재연결.
-**Effort:** S human / S CC+gstack
-**Priority:** P2
-**Depends on:** Sprint 8c 완료 후
-
----
-
 ### Sprint 8 E2E 테스트
 **What:** Sprint 8의 두 핵심 사용자 플로우에 대한 E2E 테스트 추가 (Playwright)
 **Why:** 콜시트 공유→확인 플로우와 라이브뷰 실시간 업데이트는 단위 테스트로 검증 불가 — 실제 서버 + 브라우저 필요
