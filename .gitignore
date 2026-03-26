@@ -48,3 +48,4 @@ next-env.d.ts
 /e2e/.fixtures/
 /playwright-report/
 /test-results/
+.worktrees/
