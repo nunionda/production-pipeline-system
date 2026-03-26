@@ -403,6 +403,10 @@ export default async function ProjectDetailPage({ params }: Props) {
             className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
             미술 현황
           </Link>
+          <Link href={`/projects/${id}/team`}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            팀 디렉토리
+          </Link>
           <ArchiveButton projectId={id} isCompleted={project.phase === "COMPLETED"} />
         </div>
 
