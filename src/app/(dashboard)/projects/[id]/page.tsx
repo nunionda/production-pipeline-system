@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { PhaseTabs } from "@/components/phase-tabs";
 import { StatusBadge, phaseToStatus } from "@/components/status-badge";
+import { ArchiveButton } from "./archive-button";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -388,6 +389,15 @@ export default async function ProjectDetailPage({ params }: Props) {
             className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
             납품 관리
           </Link>
+          <Link href={`/projects/${id}/ad`}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            조감독 뷰
+          </Link>
+          <Link href={`/projects/${id}/art`}
+            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            미술 현황
+          </Link>
+          <ArchiveButton projectId={id} isCompleted={project.phase === "COMPLETED"} />
         </div>
 
       </div>
