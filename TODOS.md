@@ -1,19 +1,5 @@
 # TODOS — nunionda
 
-## P2: High Priority
-
-### Sprint 8 E2E 테스트
-**What:** Sprint 8의 두 핵심 사용자 플로우에 대한 E2E 테스트 추가 (Playwright)
-**Why:** 콜시트 공유→확인 플로우와 라이브뷰 실시간 업데이트는 단위 테스트로 검증 불가 — 실제 서버 + 브라우저 필요
-**Pros:** 배포 전 신뢰도 확보, 회귀 방지
-**Cons:** Playwright 설정 + 시드 데이터 필요, CI에서 PostgreSQL 컨테이너 필요
-**Context:** Sprint 8 구현 후 Playwright 추가. 두 시나리오: (1) share token 생성 → /c/[token] 방문 → 확인 버튼 클릭 → /ad에서 확인 상태 표시. (2) 라이브뷰 페이지 오픈 + 씬 상태 PATCH → SSE로 UI 업데이트.
-**Effort:** M human / S CC+gstack
-**Priority:** P2
-**Depends on:** Sprint 8a, 8c 완료 후
-
----
-
 ## P3: Deferred / Nice-to-Have
 
 ### SSE 멀티 인스턴스 대응 — Redis Pub/Sub
