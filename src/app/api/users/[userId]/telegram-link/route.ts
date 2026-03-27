@@ -32,14 +32,6 @@ export async function POST(_req: NextRequest, { params }: Params) {
     }
   }
 
-  // 6자리 랜덤 코드 생성 (영숫자 대문자)
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-  await db.user.update({
-    where: { id: userId },
-    data: { telegramLinkCode: code },
-  });
-
   const botUsername = process.env.TELEGRAM_BOT_USERNAME;
   if (!botUsername) {
     return NextResponse.json(
@@ -47,6 +39,17 @@ export async function POST(_req: NextRequest, { params }: Params) {
       { status: 500 }
     );
   }
+
+  // 6자리 랜덤 코드 생성 (영숫자 대문자)
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const code = Array.from(crypto.getRandomValues(new Uint8Array(6)))
+    .map((b) => chars[b % chars.length])
+    .join("");
+
+  await db.user.update({
+    where: { id: userId },
+    data: { telegramLinkCode: code },
+  });
 
   const deepLink = `https://t.me/${botUsername}?start=${code}`;
   return NextResponse.json({ deepLink, code }, { status: 201 });
