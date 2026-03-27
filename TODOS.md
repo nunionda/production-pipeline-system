@@ -22,15 +22,6 @@
 **Priority:** P3
 **Depends on:** Sprint 8d 완료 + 실제 사용 확인 후
 
-### 날씨 API 연동
-**What:** 기상청 또는 Open-Meteo API로 촬영일 날씨 예보 표시
-**Why:** 야외 씬 촬영일에 날씨가 핵심 변수 — 콜시트에 날씨 포함 시 PD/조감독 의사결정 지원
-**Pros:** 현장 실용성 높음, 외부 툴 탭 전환 불필요
-**Cons:** API 키 관리, 위치 데이터 매핑 필요
-**Context:** 기상청 API (국내 정확도 높음) 또는 Open-Meteo (무료, 한국 지원). 촬영 장소 좌표가 Location 모델에 없으면 지오코딩 필요.
-**Effort:** M human / S CC+gstack
-**Priority:** P3
-
 ### 스크립트 개정 버저닝 + diff 뷰
 **What:** 시나리오 개정판 버전 관리 + 이전 버전 대비 변경 diff 뷰
 **Why:** 현장에서 대본 변경이 잦음 — 배우가 어떤 대사가 바뀌었는지 빠르게 파악 필요
