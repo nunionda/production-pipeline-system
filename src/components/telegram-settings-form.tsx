@@ -81,7 +81,7 @@ export function TelegramSettingsForm({ projectId, initialChatId }: Props) {
           </button>
           <button
             onClick={handleTest}
-            disabled={testing || !chatId}
+            disabled={testing || saving || !chatId}
             className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
             {testing ? "발송 중…" : "테스트 메시지"}
