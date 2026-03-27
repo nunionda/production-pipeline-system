@@ -40,7 +40,7 @@ export function CallsheetShareButton({ projectId, scheduleId, dayId, hasCallShee
     navigator.clipboard.writeText(shareUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    }).catch(() => {});
   }
 
   if (!hasCallSheet) {
