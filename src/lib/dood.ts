@@ -10,11 +10,6 @@ export type DoodCharacter = {
   name: string;
 };
 
-export type DoodDay = {
-  id: string;
-  date: Date;
-};
-
 /**
  * Input type: minimal shape from either page or export DB query.
  * Both `page.tsx` and `export/route.ts` return the same nested structure.
