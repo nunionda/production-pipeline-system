@@ -31,14 +31,11 @@
 **Effort:** M human / S CC+gstack
 **Priority:** P3
 
+## Completed
+
 ### 팀 디렉토리 (부서별 연락처)
 **What:** 부서별 스태프 연락처 목록 + PDF/Excel 내보내기
-**Why:** 현재 카카오톡 단체방에 흩어진 연락처를 시스템에서 관리
-**Pros:** 비상 연락처 한 곳 관리, 콜시트에 자동 포함 가능
-**Cons:** 핵심 3개 기능 대비 우선순위 낮음
-**Context:** ProjectMember 모델 이미 존재 — 전화번호 필드 추가 + 부서별 필터 뷰로 구현 가능.
-**Effort:** S human / S CC+gstack
-**Priority:** P3
+**Completed:** v0.2.0 (2026-03-27)
 
 ### PWA Service Worker 오프라인 캐싱
 **What:** 콜시트 + 라이브뷰 PWA 오프라인 지원
