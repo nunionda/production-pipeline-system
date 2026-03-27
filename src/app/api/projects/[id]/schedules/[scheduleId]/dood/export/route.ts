@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import ExcelJS from "exceljs";
 import { auth } from "@/lib/auth";
+import { buildDoodMatrix } from "@/lib/dood";
 
 export const runtime = "nodejs";
 
@@ -42,29 +43,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
   const days = schedule.shootingDays;
 
-  // Collect all unique characters
-  const characterMap = new Map<string, string>(); // id → name
-  for (const day of days) {
-    for (const ss of day.sceneStatuses) {
-      for (const sc of ss.scene.characters) {
-        characterMap.set(sc.character.id, sc.character.name);
-      }
-    }
-  }
-  const characters = Array.from(characterMap.entries()).sort((a, b) =>
-    a[1].localeCompare(b[1], "ko")
-  );
-
-  // Build charId → Set<dayId>
-  const charDaySet = new Map<string, Set<string>>();
-  for (const day of days) {
-    for (const ss of day.sceneStatuses) {
-      for (const sc of ss.scene.characters) {
-        if (!charDaySet.has(sc.character.id)) charDaySet.set(sc.character.id, new Set());
-        charDaySet.get(sc.character.id)!.add(day.id);
-      }
-    }
-  }
+  const { characters, charDaySet } = buildDoodMatrix(days);
 
   // Build workbook
   const workbook = new ExcelJS.Workbook();
@@ -81,10 +60,10 @@ export async function GET(_req: NextRequest, { params }: Params) {
   sheet.getRow(1).height = 36;
 
   // Data rows
-  for (const [charId, charName] of characters) {
-    const workDays = charDaySet.get(charId) ?? new Set();
+  for (const char of characters) {
+    const workDays = charDaySet.get(char.id) ?? new Set();
     const cells = [
-      charName,
+      char.name,
       ...days.map((d) => (workDays.has(d.id) ? "W" : "")),
       workDays.size,
     ];
