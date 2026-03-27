@@ -21,6 +21,10 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
+  // 텔레그램
+  telegramChatId   String?   // 개인 DM chat_id (봇과 연결 후 저장)
+  telegramLinkCode String?   // /start 연결용 일회성 코드 (연결 완료 후 null)
+
   // Relations
   projects       ProjectMember[]
   auditLogs      AuditLog[]
@@ -58,6 +62,9 @@ model Project {
   endDate     DateTime?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+
+  // 텔레그램
+  telegramChatId   String?   // 그룹 채팅 chat_id
 
   // Relations
   members     ProjectMember[]

@@ -5,6 +5,7 @@ import { PhaseTabs } from "@/components/phase-tabs";
 import { StatusBadge, phaseToStatus } from "@/components/status-badge";
 import { ArchiveButton } from "./archive-button";
 import { getActualAmount } from "@/lib/budget";
+import { TelegramSettingsForm } from "@/components/telegram-settings-form";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -409,6 +410,15 @@ export default async function ProjectDetailPage({ params }: Props) {
           </Link>
           <ArchiveButton projectId={id} isCompleted={project.phase === "COMPLETED"} />
         </div>
+
+        {/* 텔레그램 설정 */}
+        <section className="rounded-lg border border-gray-200 bg-white p-5">
+          <h2 className="mb-4 text-sm font-semibold text-gray-900">텔레그램 설정</h2>
+          <TelegramSettingsForm
+            projectId={id}
+            initialChatId={project.telegramChatId}
+          />
+        </section>
 
       </div>
     </div>

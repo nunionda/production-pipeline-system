@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { RoleGroup } from "@/lib/team";
+import { TelegramLinkButton } from "@/components/telegram-link-button";
 
 type Props = {
   groups: RoleGroup[];
@@ -88,6 +89,11 @@ export function TeamDirectoryClient({ groups, currentUserId }: Props) {
                     <p className="text-sm font-medium text-gray-900">{m.user.name}</p>
                     <p className="text-xs text-gray-500">{m.user.email}</p>
                   </div>
+
+                  <TelegramLinkButton
+                    userId={m.user.id}
+                    isLinked={!!m.user.telegramChatId}
+                  />
 
                   {isEditing ? (
                     <div className="flex items-center gap-2">

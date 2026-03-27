@@ -27,6 +27,7 @@ export type MemberWithUser = {
     name: string;
     email: string;
     phone: string | null;
+    telegramChatId: string | null;
   };
 };
 

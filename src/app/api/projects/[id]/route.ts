@@ -50,6 +50,9 @@ export async function PATCH(
       ...(body.phase && { phase: body.phase }),
       ...(body.startDate && { startDate: new Date(body.startDate) }),
       ...(body.endDate && { endDate: new Date(body.endDate) }),
+      ...(body.telegramChatId !== undefined && {
+        telegramChatId: body.telegramChatId?.trim() || null,
+      }),
     },
   });
 

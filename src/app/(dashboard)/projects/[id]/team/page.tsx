@@ -15,7 +15,15 @@ export default async function TeamDirectoryPage({ params }: Props) {
     db.projectMember.findMany({
       where: { projectId: id },
       include: {
-        user: { select: { id: true, name: true, email: true, phone: true } },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            telegramChatId: true,
+          },
+        },
       },
       orderBy: { createdAt: "asc" },
     }),
