@@ -34,23 +34,27 @@ export async function POST(req: NextRequest) {
   if (text.startsWith("/start ")) {
     const code = text.slice(7).trim().toUpperCase();
     if (code) {
-      const user = await db.user.findFirst({
-        where: { telegramLinkCode: code },
-      });
-      if (user) {
-        await db.user.update({
-          where: { id: user.id },
-          data: {
-            telegramChatId: String(chatId),
-            telegramLinkCode: null,
-          },
+      try {
+        const user = await db.user.findFirst({
+          where: { telegramLinkCode: code },
         });
-        await sendMessage(
-          chatId,
-          `✅ 연결 완료! 안녕하세요 ${user.name}님, 이제 콜시트 알림을 받을 수 있습니다.`
-        );
-      } else {
-        await sendMessage(chatId, "올바르지 않은 코드입니다. 앱에서 새 링크를 생성해 주세요.");
+        if (user) {
+          await db.user.update({
+            where: { id: user.id },
+            data: {
+              telegramChatId: String(chatId),
+              telegramLinkCode: null,
+            },
+          });
+          await sendMessage(
+            chatId,
+            `✅ 연결 완료! 안녕하세요 ${user.name}님, 이제 콜시트 알림을 받을 수 있습니다.`
+          );
+        } else {
+          await sendMessage(chatId, "올바르지 않은 코드입니다. 앱에서 새 링크를 생성해 주세요.");
+        }
+      } catch (err) {
+        console.error("[telegram/webhook] /start 처리 오류:", err);
       }
     }
   }
