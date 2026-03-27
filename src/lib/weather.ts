@@ -46,6 +46,9 @@ async function fetchOpenMeteoForecast(
         hour,
         temp: Math.round(temperature_2m[i] ?? 0),
         sky: skyFromOpenMeteo(weathercode[i] ?? 0),
+        // NOTE: Open-Meteo PrecipType mapping is simplified — maps to RAIN or NONE only.
+        // SNOW and RAIN_SNOW are not distinguished here (weathercode-based mapping is
+        // available but omitted for MVP). KMA path provides full PrecipType coverage.
         precip: precipitation_probability[i] > 40 ? "RAIN" : "NONE",
         precipProb: precipitation_probability[i] ?? 0,
         windSpeed: Math.round((windspeed_10m[i] ?? 0) / 3.6 * 10) / 10,

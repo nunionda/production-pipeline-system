@@ -117,6 +117,11 @@ export async function fetchKmaForecast(
     if (!serviceKey) return null
 
     const { nx, ny } = latLngToGrid(lat, lng)
+    // NOTE: base_date is derived from the current time (not targetDate).
+    // In the rare case where the current KST time is before 02:10 (first issuance),
+    // base_date will be yesterday. If targetDate is today, the API response may not
+    // include today's forecasts, causing this function to return null and fall back
+    // to Open-Meteo. This is acceptable behavior.
     const { base_date, base_time } = getKmaBaseTime(new Date())
 
     const url = new URL("https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst")

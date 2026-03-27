@@ -32,8 +32,13 @@ export default async function ScheduleDetailPage({
   if (!schedule) notFound();
 
   // 날씨 병렬 호출 — 일부 실패해도 전체 목록 렌더 보장
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
   const weatherResults = await Promise.allSettled(
-    schedule.shootingDays.map((day) => fetchWeather(day.location, day.date))
+    schedule.shootingDays.map((day) => {
+      const isPast = new Date(day.date) < today
+      return isPast ? Promise.resolve(null) : fetchWeather(day.location, day.date)
+    })
   )
   const weatherMap = new Map(
     schedule.shootingDays.map((day, i) => {
