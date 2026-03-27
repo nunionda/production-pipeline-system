@@ -6,7 +6,7 @@ import { checkProjectMembership } from "@/lib/team";
 
 type Params = { params: Promise<{ id: string }> };
 
-export async function POST(req: NextRequest, { params }: Params) {
+export async function POST(_req: NextRequest, { params }: Params) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,13 +17,18 @@ export async function POST(req: NextRequest, { params }: Params) {
   if (!membership) {
     return NextResponse.json({ error: "프로젝트 접근 권한 없음" }, { status: 403 });
   }
-  const { chatId } = (await req.json()) as { chatId: string };
-
-  if (!chatId) return NextResponse.json({ error: "chatId 필수" }, { status: 400 });
+  // chatId를 클라이언트가 보내지 않고 프로젝트 DB에서 가져옴
+  const project = await db.project.findUnique({
+    where: { id: projectId },
+    select: { telegramChatId: true },
+  });
+  if (!project?.telegramChatId) {
+    return NextResponse.json({ error: "텔레그램 그룹이 연결되지 않았습니다" }, { status: 400 });
+  }
 
   const sent = await sendMessage(
-    chatId,
-    `✅ 프로덕션 파이프라인 시스템과 연결되었습니다.\n프로젝트 ID: ${projectId}`
+    project.telegramChatId,
+    `✅ 프로덕션 파이프라인 시스템과 연결되었습니다.`
   );
 
   if (sent) return NextResponse.json({ ok: true });

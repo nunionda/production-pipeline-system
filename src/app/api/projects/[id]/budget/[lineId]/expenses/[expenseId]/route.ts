@@ -21,6 +21,15 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "프로젝트 접근 권한 없음" }, { status: 403 });
   }
 
+  // Verify lineId belongs to this project
+  const budgetLine = await db.budgetLine.findUnique({
+    where: { id: lineId },
+    select: { projectId: true },
+  });
+  if (!budgetLine || budgetLine.projectId !== projectId) {
+    return NextResponse.json({ error: "예산 항목을 찾을 수 없습니다" }, { status: 404 });
+  }
+
   // Verify expense belongs to this budget line
   const expense = await db.expense.findUnique({
     where: { id: expenseId },

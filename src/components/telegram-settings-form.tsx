@@ -40,8 +40,6 @@ export function TelegramSettingsForm({ projectId, initialChatId }: Props) {
     try {
       const res = await fetch(`/api/projects/${projectId}/telegram/test`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chatId }),
       });
       if (res.ok) {
         setMessage({

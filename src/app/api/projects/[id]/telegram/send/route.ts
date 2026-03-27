@@ -77,6 +77,15 @@ export async function POST(req: NextRequest, { params }: Params) {
   });
   if (!day) return NextResponse.json({ error: "촬영일 없음" }, { status: 404 });
 
+  // 촬영일이 이 프로젝트의 스케줄에 속하는지 확인
+  const schedule = await db.schedule.findUnique({
+    where: { id: day.scheduleId ?? scheduleId },
+    select: { projectId: true },
+  });
+  if (!schedule || schedule.projectId !== projectId) {
+    return NextResponse.json({ error: "촬영일이 이 프로젝트에 속하지 않습니다" }, { status: 403 });
+  }
+
   // 촬영일 번호 계산 (스케줄 내 날짜 순서)
   const allDays = await db.shootingDay.findMany({
     where: { scheduleId: day.scheduleId },

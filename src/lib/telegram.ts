@@ -2,6 +2,14 @@
 
 const BASE_URL = "https://api.telegram.org/bot";
 
+/** Escape HTML special characters for Telegram parse_mode: "HTML" */
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 function getBotToken(): string | undefined {
   return process.env.TELEGRAM_BOT_TOKEN;
 }
@@ -117,9 +125,9 @@ export function buildCallsheetMessage(data: CallsheetMessageData): string {
       : "";
 
   const lines = [
-    `🎬 ${data.projectTitle} D+${data.dayNumber} 콜시트`,
+    `🎬 ${escapeHtml(data.projectTitle)} D+${data.dayNumber} 콜시트`,
     `📅 ${dateStr}`,
-    data.location ? `📍 ${data.location}` : "",
+    data.location ? `📍 ${escapeHtml(data.location)}` : "",
     timeLine,
     weatherLine,
     "",
@@ -141,7 +149,7 @@ export function buildDmMessage(data: DmMessageData): string {
   const d = data.date;
   const dateStr = `${d.getMonth() + 1}월 ${d.getDate()}일`;
   return [
-    `안녕하세요 ${data.memberName}님,`,
+    `안녕하세요 ${escapeHtml(data.memberName)}님,`,
     `내일(${dateStr}) 촬영 콜시트를 확인해 주세요.`,
     ``,
     `👉 ${data.shareUrl}`,
@@ -160,11 +168,11 @@ export function buildNotifyMessage(
 ): string {
   switch (changeType) {
     case "LOCATION":
-      return `📢 [D+${dayNumber}] 장소 변경: ${oldValue} → ${newValue}`;
+      return `📢 [D+${dayNumber}] 장소 변경: ${escapeHtml(oldValue)} → ${escapeHtml(newValue)}`;
     case "CALLTIME":
-      return `⏰ [D+${dayNumber}] 콜타임 변경: ${oldValue} → ${newValue}`;
+      return `⏰ [D+${dayNumber}] 콜타임 변경: ${escapeHtml(oldValue)} → ${escapeHtml(newValue)}`;
     case "WEATHER":
-      return `⚠️ [D+${dayNumber}] 촬영지 날씨 변경: ${oldValue} → ${newValue}`;
+      return `⚠️ [D+${dayNumber}] 촬영지 날씨 변경: ${escapeHtml(oldValue)} → ${escapeHtml(newValue)}`;
   }
 }
 

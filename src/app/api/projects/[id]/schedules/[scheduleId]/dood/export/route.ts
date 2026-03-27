@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import ExcelJS from "exceljs";
 import { auth } from "@/lib/auth";
 import { buildDoodMatrix } from "@/lib/dood";
+import { checkProjectMembership } from "@/lib/team";
 
 export const runtime = "nodejs";
 
@@ -12,9 +13,14 @@ type Params = { params: Promise<{ id: string; scheduleId: string }> };
 // Returns an Excel file (.xlsx) of the Day-out-of-Days matrix.
 export async function GET(_req: NextRequest, { params }: Params) {
   const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { scheduleId } = await params;
+  const { id: projectId, scheduleId } = await params;
+
+  const membership = await checkProjectMembership(db, session.user.id, projectId);
+  if (!membership) {
+    return NextResponse.json({ error: "프로젝트 접근 권한 없음" }, { status: 403 });
+  }
 
   const schedule = await db.schedule.findUnique({
     where: { id: scheduleId },
@@ -37,7 +43,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
     },
   });
 
-  if (!schedule) {
+  if (!schedule || schedule.projectId !== projectId) {
     return NextResponse.json({ error: "스케줄을 찾을 수 없습니다" }, { status: 404 });
   }
 
