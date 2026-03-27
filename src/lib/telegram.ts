@@ -30,7 +30,8 @@ export async function sendDocument(
   chatId: string | number,
   buffer: Buffer,
   filename: string,
-  caption?: string
+  caption?: string,
+  mimeType = "application/pdf"
 ): Promise<boolean> {
   if (!BOT_TOKEN) return false;
   try {
@@ -38,7 +39,7 @@ export async function sendDocument(
     form.append("chat_id", String(chatId));
     form.append(
       "document",
-      new Blob([buffer], { type: "application/pdf" }),
+      new Blob([buffer], { type: mimeType }),
       filename
     );
     if (caption) form.append("caption", caption);
