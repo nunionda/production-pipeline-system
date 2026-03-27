@@ -106,6 +106,12 @@ export default async function ShootingDayPage({
         {/* Header action buttons */}
         <div className="flex items-center gap-2">
           <a
+            href={`/projects/${id}/schedule/${scheduleId}/day/${dayId}/live`}
+            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            라이브뷰
+          </a>
+          <a
             href={`/api/projects/${id}/schedules/${scheduleId}/shooting-days/${dayId}/call-sheet/pdf`}
             target="_blank"
             rel="noopener noreferrer"
