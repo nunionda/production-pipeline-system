@@ -71,7 +71,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   // 촬영일 번호 계산 (스케줄 내 날짜 순서)
   const allDays = await db.shootingDay.findMany({
-    where: { scheduleId },
+    where: { scheduleId: day.scheduleId },
     orderBy: { date: "asc" },
     select: { id: true },
   });
