@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ShootingDayClient } from "./shooting-day-client";
 import { fetchWeather } from "@/lib/weather";
 import { WeatherForecast } from "@/components/weather-forecast";
+import { TelegramSendButton } from "./telegram-send-button";
 
 export default async function ShootingDayPage({
   params,
@@ -12,7 +13,11 @@ export default async function ShootingDayPage({
 }) {
   const { id, scheduleId, dayId } = await params;
 
-  const [day, allDays, allScenes, projectProps, projectCostumes] = await Promise.all([
+  const [project, day, allDays, allScenes, projectProps, projectCostumes] = await Promise.all([
+    db.project.findUnique({
+      where: { id },
+      select: { title: true, telegramChatId: true },
+    }),
     db.shootingDay.findUnique({
       where: { id: dayId },
       include: {
@@ -106,6 +111,12 @@ export default async function ShootingDayPage({
         >
           콜시트 PDF
         </a>
+        <TelegramSendButton
+          projectId={id}
+          scheduleId={scheduleId}
+          dayId={dayId}
+          hasTelegramGroup={!!project?.telegramChatId}
+        />
       </div>
 
       {weather && day.location && (
