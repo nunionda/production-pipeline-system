@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
+import { buildDoodMatrix } from "@/lib/dood";
 
 type Params = { params: Promise<{ id: string; scheduleId: string }> };
 
@@ -46,37 +47,7 @@ export default async function DoodPage({ params }: Params) {
 
   const days = schedule.shootingDays;
 
-  // Collect all unique characters across all days
-  const characterMap = new Map<string, { id: string; name: string }>();
-  for (const day of days) {
-    for (const ss of day.sceneStatuses) {
-      for (const sc of ss.scene.characters) {
-        if (!characterMap.has(sc.character.id)) {
-          characterMap.set(sc.character.id, {
-            id: sc.character.id,
-            name: sc.character.name,
-          });
-        }
-      }
-    }
-  }
-
-  const characters = Array.from(characterMap.values()).sort((a, b) =>
-    a.name.localeCompare(b.name, "ko")
-  );
-
-  // Build a lookup: characterId → Set<dayId>
-  const charDaySet = new Map<string, Set<string>>();
-  for (const day of days) {
-    for (const ss of day.sceneStatuses) {
-      for (const sc of ss.scene.characters) {
-        if (!charDaySet.has(sc.character.id)) {
-          charDaySet.set(sc.character.id, new Set());
-        }
-        charDaySet.get(sc.character.id)!.add(day.id);
-      }
-    }
-  }
+  const { characters, charDaySet } = buildDoodMatrix(days);
 
   function formatDate(d: Date) {
     return new Date(d).toLocaleDateString("ko-KR", {
