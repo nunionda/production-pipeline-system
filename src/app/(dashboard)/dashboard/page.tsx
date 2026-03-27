@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { StatusBadge, phaseToStatus } from "@/components/status-badge";
+import { getActualAmount } from "@/lib/budget";
 
 export default async function DashboardPage() {
   const projects = await db.project.findMany({
@@ -29,7 +30,11 @@ export default async function DashboardPage() {
         }),
         db.budgetLine.findMany({
           where: { projectId: p.id },
-          select: { estimatedAmount: true, actualAmount: true },
+          select: {
+            estimatedAmount: true,
+            actualAmount: true,
+            expenses: { select: { amount: true } },
+          },
         }),
       ]);
 
@@ -38,7 +43,7 @@ export default async function DashboardPage() {
       const scenePercent = total > 0 ? Math.round((completed / total) * 100) : null;
 
       const totalEst = budgetLines.reduce((s, l) => s + l.estimatedAmount, 0);
-      const totalAct = budgetLines.reduce((s, l) => s + l.actualAmount, 0);
+      const totalAct = budgetLines.reduce((s, l) => s + getActualAmount(l), 0);
       const budgetPercent = totalEst > 0 ? Math.round((totalAct / totalEst) * 100) : null;
 
       return { scenePercent, total, completed, nextDay, budgetPercent };

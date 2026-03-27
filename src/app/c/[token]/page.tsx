@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { findActorInCast, type CastEntry } from "@/lib/callsheet";
 
 type CallSheetShare = {
   id: string;
@@ -12,6 +13,9 @@ type CallSheetShare = {
     location: string | null;
     callTime: string | null;
     notes: string | null;
+    schedule: {
+      project: { title: string };
+    };
   };
   callSheet: {
     callTime: string;
@@ -62,29 +66,36 @@ export default function PublicCallSheetPage() {
     }
   }
 
+  // 에러 상태: 카드 형태
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="text-center">
-          <p className="text-red-600 font-medium">{error}</p>
-          <p className="text-sm text-gray-500 mt-2">링크가 만료되었거나 유효하지 않습니다.</p>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-sm w-full text-center">
+          <p className="text-3xl mb-3">⚠️</p>
+          <h2 className="text-lg font-semibold text-gray-900">링크를 찾을 수 없습니다</h2>
+          <p className="text-sm text-gray-500 mt-2">제작사에 문의해 주세요.</p>
         </div>
       </div>
     );
   }
 
+  // 로딩 상태: 스켈레톤
   if (!data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">로딩 중…</p>
+      <div className="min-h-screen bg-gray-50 animate-pulse">
+        <div className="bg-blue-800 h-28" />
+        <div className="max-w-lg mx-auto p-4 space-y-4">
+          <div className="bg-white rounded-lg h-24" />
+          <div className="bg-white rounded-lg h-40" />
+          <div className="bg-white rounded-lg h-32" />
+        </div>
       </div>
     );
   }
 
   const cast = Array.isArray(data.callSheet.cast) ? (data.callSheet.cast as CastEntry[]) : [];
-  const myEntry = actorParam
-    ? cast.find((c) => c.name === actorParam || c.role === actorParam)
-    : null;
+  const myEntry = findActorInCast(cast, actorParam);
+  const projectTitle = data.shootingDay.schedule.project.title;
 
   const shootDate = new Date(data.shootingDay.date).toLocaleDateString("ko-KR", {
     year: "numeric",
@@ -97,7 +108,7 @@ export default function PublicCallSheetPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-blue-800 text-white px-4 py-5">
-        <p className="text-xs opacity-70 uppercase tracking-wide">콜시트</p>
+        <p className="text-xs opacity-70 uppercase tracking-wide">{projectTitle} 콜시트</p>
         <h1 className="text-xl font-bold mt-1">{shootDate}</h1>
         {data.shootingDay.location && (
           <p className="text-sm opacity-90 mt-0.5">{data.shootingDay.location}</p>
@@ -109,13 +120,23 @@ export default function PublicCallSheetPage() {
       </div>
 
       <div className="max-w-lg mx-auto p-4 space-y-4">
-        {/* My call time highlight */}
+        {/* 내 콜타임 하이라이트 — 확인 완료 후에도 Yellow 카드 유지 + green badge */}
         {myEntry && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-xs text-yellow-700 font-medium uppercase">내 콜타임</p>
-            <p className="text-2xl font-bold text-yellow-800 mt-1">{myEntry.callTime ?? data.callSheet.callTime}</p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-yellow-700 font-medium uppercase">내 콜타임</p>
+              {confirmed && (
+                <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                  ✓ 확인 완료
+                </span>
+              )}
+            </div>
+            <p className="text-2xl font-bold text-yellow-800 mt-1">
+              {myEntry.callTime ?? data.callSheet.callTime}
+            </p>
             <p className="text-sm text-yellow-700 mt-0.5">
-              {myEntry.name} {myEntry.role ? `(${myEntry.role})` : ""}
+              {myEntry.name}
+              {myEntry.role ? ` (${myEntry.role})` : ""}
             </p>
           </div>
         )}
@@ -136,7 +157,9 @@ export default function PublicCallSheetPage() {
                     <p className="font-medium text-sm">{c.name}</p>
                     {c.role && <p className="text-xs text-gray-500">{c.role}</p>}
                   </div>
-                  <p className="text-sm font-semibold text-blue-800">{c.callTime ?? data.callSheet.callTime}</p>
+                  <p className="text-sm font-semibold text-blue-800">
+                    {c.callTime ?? data.callSheet.callTime}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -151,13 +174,14 @@ export default function PublicCallSheetPage() {
           </section>
         )}
 
-        {/* Confirm section */}
+        {/* 확인 섹션 */}
         <section className="bg-white rounded-lg shadow-sm p-4">
           <h2 className="text-sm font-semibold text-gray-500 mb-3">콜시트 확인</h2>
           {confirmed ? (
             <div className="text-center py-2">
-              <p className="text-green-600 font-semibold text-lg">✓ 확인 완료</p>
-              <p className="text-sm text-gray-500 mt-1">{actorName} 님의 확인이 등록되었습니다.</p>
+              <p className="text-green-600 font-semibold text-lg">
+                ✔ {actorName} 님 확인 완료
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -182,5 +206,3 @@ export default function PublicCallSheetPage() {
     </div>
   );
 }
-
-type CastEntry = { name: string; role?: string; callTime?: string };

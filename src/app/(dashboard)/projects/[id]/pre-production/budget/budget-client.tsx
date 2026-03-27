@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { formatKRW } from "@/lib/budget";
 
 type Phase =
   | "DEVELOPMENT"
@@ -38,12 +39,6 @@ const PHASE_LABELS: Record<Phase, string> = {
 };
 
 const CATEGORIES = ["인건비", "장비", "장소", "식비", "교통", "의상/소품", "후반작업", "기타"];
-
-function formatKRW(n: number) {
-  if (n >= 100_000_000) return `${(n / 100_000_000).toFixed(1)}억`;
-  if (n >= 10_000) return `${(n / 10_000).toFixed(0)}만`;
-  return `${n.toLocaleString()}`;
-}
 
 export function BudgetClient({
   projectId,
@@ -124,6 +119,20 @@ export function BudgetClient({
     await fetch(`${apiBase}/${id}`, { method: "DELETE" });
     setLines((prev) => prev.filter((l) => l.id !== id));
     router.refresh();
+  }
+
+  async function deleteExpense(lineId: string, expenseId: string) {
+    if (!confirm("이 지출 내역을 삭제하시겠습니까?")) return;
+    const res = await fetch(`${apiBase}/${lineId}/expenses/${expenseId}`, { method: "DELETE" });
+    if (res.ok) {
+      setLines((prev) =>
+        prev.map((l) =>
+          l.id === lineId
+            ? { ...l, expenses: (l.expenses ?? []).filter((e) => e.id !== expenseId) }
+            : l
+        )
+      );
+    }
   }
 
   async function addExpense(lineId: string) {
@@ -281,10 +290,15 @@ export function BudgetClient({
                       {line.expenses && line.expenses.length > 0 && (
                         <div className="border-t border-gray-100 pt-2 space-y-1">
                           {line.expenses.map((e) => (
-                            <div key={e.id} className="flex items-center gap-2 text-xs text-gray-500">
+                            <div key={e.id} className="flex items-center gap-2 text-xs text-gray-500 group">
                               <span className="flex-1">{e.note || "—"}</span>
                               <span>{new Date(e.date).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}</span>
                               <span className="font-medium text-gray-700">{formatKRW(e.amount)}원</span>
+                              <button
+                                onClick={() => deleteExpense(line.id, e.id)}
+                                className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="삭제"
+                              >✕</button>
                             </div>
                           ))}
                         </div>

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import ExcelJS from "exceljs";
 import { auth } from "@/lib/auth";
+import { buildDoodMatrix } from "@/lib/dood";
+import { checkProjectMembership } from "@/lib/team";
 
 export const runtime = "nodejs";
 
@@ -11,9 +13,14 @@ type Params = { params: Promise<{ id: string; scheduleId: string }> };
 // Returns an Excel file (.xlsx) of the Day-out-of-Days matrix.
 export async function GET(_req: NextRequest, { params }: Params) {
   const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { scheduleId } = await params;
+  const { id: projectId, scheduleId } = await params;
+
+  const membership = await checkProjectMembership(db, session.user.id, projectId);
+  if (!membership) {
+    return NextResponse.json({ error: "프로젝트 접근 권한 없음" }, { status: 403 });
+  }
 
   const schedule = await db.schedule.findUnique({
     where: { id: scheduleId },
@@ -36,35 +43,13 @@ export async function GET(_req: NextRequest, { params }: Params) {
     },
   });
 
-  if (!schedule) {
+  if (!schedule || schedule.projectId !== projectId) {
     return NextResponse.json({ error: "스케줄을 찾을 수 없습니다" }, { status: 404 });
   }
 
   const days = schedule.shootingDays;
 
-  // Collect all unique characters
-  const characterMap = new Map<string, string>(); // id → name
-  for (const day of days) {
-    for (const ss of day.sceneStatuses) {
-      for (const sc of ss.scene.characters) {
-        characterMap.set(sc.character.id, sc.character.name);
-      }
-    }
-  }
-  const characters = Array.from(characterMap.entries()).sort((a, b) =>
-    a[1].localeCompare(b[1], "ko")
-  );
-
-  // Build charId → Set<dayId>
-  const charDaySet = new Map<string, Set<string>>();
-  for (const day of days) {
-    for (const ss of day.sceneStatuses) {
-      for (const sc of ss.scene.characters) {
-        if (!charDaySet.has(sc.character.id)) charDaySet.set(sc.character.id, new Set());
-        charDaySet.get(sc.character.id)!.add(day.id);
-      }
-    }
-  }
+  const { characters, charDaySet } = buildDoodMatrix(days);
 
   // Build workbook
   const workbook = new ExcelJS.Workbook();
@@ -81,10 +66,10 @@ export async function GET(_req: NextRequest, { params }: Params) {
   sheet.getRow(1).height = 36;
 
   // Data rows
-  for (const [charId, charName] of characters) {
-    const workDays = charDaySet.get(charId) ?? new Set();
+  for (const char of characters) {
+    const workDays = charDaySet.get(char.id) ?? new Set();
     const cells = [
-      charName,
+      char.name,
       ...days.map((d) => (workDays.has(d.id) ? "W" : "")),
       workDays.size,
     ];

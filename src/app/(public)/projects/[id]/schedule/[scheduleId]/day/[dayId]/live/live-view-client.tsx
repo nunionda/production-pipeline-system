@@ -28,6 +28,7 @@ const TIMEDAYKR: Record<string, string> = { DAY: "낮", NIGHT: "밤", DAWN: "새
 type Props = {
   projectTitle: string;
   shootDate: string;
+  shootLocation: string | null;
   dayId: string;
   projectId: string;
   scheduleId: string;
@@ -37,6 +38,7 @@ type Props = {
 export function LiveViewClient({
   projectTitle,
   shootDate,
+  shootLocation,
   dayId,
   projectId,
   scheduleId,
@@ -111,6 +113,9 @@ export function LiveViewClient({
         <div>
           <p className="text-xs text-gray-400 uppercase tracking-wide">{projectTitle}</p>
           <h1 className="text-lg font-bold mt-0.5">{shootDate}</h1>
+          {shootLocation && (
+            <p className="text-sm text-gray-400 mt-0.5">{shootLocation}</p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <div
@@ -137,7 +142,9 @@ export function LiveViewClient({
       {/* Scene list */}
       <div className="px-4 py-4 space-y-3">
         {statuses.length === 0 ? (
-          <p className="text-center text-gray-500 py-12">배정된 씬이 없습니다</p>
+          <p className="text-center text-gray-500 py-12">
+            이 촬영일({shootDate})에 배정된 씬이 없습니다
+          </p>
         ) : (
           statuses.map((ss) => {
             const cfg = STATUS_CONFIG[ss.status] ?? STATUS_CONFIG.WAITING;

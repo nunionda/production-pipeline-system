@@ -1,5 +1,14 @@
 # TODOS — nunionda
 
+## P2: Security (Adversarial Review 발견)
+
+### 콜시트 공유 토큰 rate limiting
+**What:** `/api/c/[token]` 공개 엔드포인트에 rate limiting 추가
+**Why:** 토큰 열거 공격으로 타 프로젝트 콜시트 접근 가능성 (CUID 기반이라 추측 어렵지만 방어층 추가 권장)
+**Effort:** S human / S CC+gstack
+**Priority:** P2
+**Depends on:** rate limiting 미들웨어 선택 (upstash/ratelimit 등)
+
 ## P3: Deferred / Nice-to-Have
 
 ### SSE 멀티 인스턴스 대응 — Redis Pub/Sub
@@ -22,15 +31,6 @@
 **Priority:** P3
 **Depends on:** Sprint 8d 완료 + 실제 사용 확인 후
 
-### 날씨 API 연동
-**What:** 기상청 또는 Open-Meteo API로 촬영일 날씨 예보 표시
-**Why:** 야외 씬 촬영일에 날씨가 핵심 변수 — 콜시트에 날씨 포함 시 PD/조감독 의사결정 지원
-**Pros:** 현장 실용성 높음, 외부 툴 탭 전환 불필요
-**Cons:** API 키 관리, 위치 데이터 매핑 필요
-**Context:** 기상청 API (국내 정확도 높음) 또는 Open-Meteo (무료, 한국 지원). 촬영 장소 좌표가 Location 모델에 없으면 지오코딩 필요.
-**Effort:** M human / S CC+gstack
-**Priority:** P3
-
 ### 스크립트 개정 버저닝 + diff 뷰
 **What:** 시나리오 개정판 버전 관리 + 이전 버전 대비 변경 diff 뷰
 **Why:** 현장에서 대본 변경이 잦음 — 배우가 어떤 대사가 바뀌었는지 빠르게 파악 필요
@@ -40,14 +40,11 @@
 **Effort:** M human / S CC+gstack
 **Priority:** P3
 
+## Completed
+
 ### 팀 디렉토리 (부서별 연락처)
 **What:** 부서별 스태프 연락처 목록 + PDF/Excel 내보내기
-**Why:** 현재 카카오톡 단체방에 흩어진 연락처를 시스템에서 관리
-**Pros:** 비상 연락처 한 곳 관리, 콜시트에 자동 포함 가능
-**Cons:** 핵심 3개 기능 대비 우선순위 낮음
-**Context:** ProjectMember 모델 이미 존재 — 전화번호 필드 추가 + 부서별 필터 뷰로 구현 가능.
-**Effort:** S human / S CC+gstack
-**Priority:** P3
+**Completed:** v0.2.0 (2026-03-27)
 
 ### PWA Service Worker 오프라인 캐싱
 **What:** 콜시트 + 라이브뷰 PWA 오프라인 지원

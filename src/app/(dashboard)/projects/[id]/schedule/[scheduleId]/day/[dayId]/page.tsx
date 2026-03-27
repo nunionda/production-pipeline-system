@@ -2,6 +2,10 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ShootingDayClient } from "./shooting-day-client";
+import { fetchWeather } from "@/lib/weather";
+import { WeatherForecast } from "@/components/weather-forecast";
+import { TelegramSendButton } from "./telegram-send-button";
+import { CallsheetShareButton } from "./callsheet-share-button";
 
 export default async function ShootingDayPage({
   params,
@@ -10,7 +14,11 @@ export default async function ShootingDayPage({
 }) {
   const { id, scheduleId, dayId } = await params;
 
-  const [day, allDays, allScenes, projectProps, projectCostumes] = await Promise.all([
+  const [project, day, allDays, allScenes, projectProps, projectCostumes] = await Promise.all([
+    db.project.findUnique({
+      where: { id },
+      select: { title: true, telegramChatId: true },
+    }),
     db.shootingDay.findUnique({
       where: { id: dayId },
       include: {
@@ -52,6 +60,12 @@ export default async function ShootingDayPage({
 
   if (!day) notFound();
 
+  // 과거 날짜는 날씨 예보 불필요
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const isPast = new Date(day.date) < today
+  const weather = isPast ? null : await fetchWeather(day.location, day.date)
+
   const dayNumber = allDays.findIndex((d) => d.id === dayId) + 1;
 
   const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
@@ -89,16 +103,40 @@ export default async function ShootingDayPage({
           </p>
         </div>
 
-        {/* PDF download button */}
-        <a
-          href={`/api/projects/${id}/schedules/${scheduleId}/shooting-days/${dayId}/call-sheet/pdf`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          콜시트 PDF
-        </a>
+        {/* Header action buttons */}
+        <div className="flex items-center gap-2">
+          <a
+            href={`/projects/${id}/schedule/${scheduleId}/day/${dayId}/live`}
+            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            라이브뷰
+          </a>
+          <a
+            href={`/api/projects/${id}/schedules/${scheduleId}/shooting-days/${dayId}/call-sheet/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            콜시트 PDF
+          </a>
+          <CallsheetShareButton
+            projectId={id}
+            scheduleId={scheduleId}
+            dayId={dayId}
+            hasCallSheet={day.callSheets.length > 0}
+          />
+          <TelegramSendButton
+            projectId={id}
+            scheduleId={scheduleId}
+            dayId={dayId}
+            hasTelegramGroup={!!project?.telegramChatId}
+          />
+        </div>
       </div>
+
+      {weather && day.location && (
+        <WeatherForecast forecast={weather} location={day.location} />
+      )}
 
       <ShootingDayClient
         projectId={id}

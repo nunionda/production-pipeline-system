@@ -2,6 +2,8 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { AddShootingDayButton } from "./add-day-button";
+import { fetchWeather } from "@/lib/weather"
+import { WeatherBadge } from "@/components/weather-badge"
 
 export default async function ScheduleDetailPage({
   params,
@@ -28,6 +30,22 @@ export default async function ScheduleDetailPage({
   });
 
   if (!schedule) notFound();
+
+  // 날씨 병렬 호출 — 일부 실패해도 전체 목록 렌더 보장
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const weatherResults = await Promise.allSettled(
+    schedule.shootingDays.map((day) => {
+      const isPast = new Date(day.date) < today
+      return isPast ? Promise.resolve(null) : fetchWeather(day.location, day.date)
+    })
+  )
+  const weatherMap = new Map(
+    schedule.shootingDays.map((day, i) => {
+      const result = weatherResults[i]
+      return [day.id, result.status === "fulfilled" ? result.value : null]
+    })
+  )
 
   const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -109,6 +127,9 @@ export default async function ScheduleDetailPage({
                 </div>
 
                 <div className="flex items-center gap-3 text-xs text-gray-400">
+                  {weatherMap.get(day.id) && (
+                    <WeatherBadge forecast={weatherMap.get(day.id)!} />
+                  )}
                   <span>{day._count.sceneStatuses}씬</span>
                   <span className="group-hover:text-blue-600">→</span>
                 </div>
