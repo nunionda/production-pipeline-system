@@ -69,3 +69,9 @@ describe("skyFromKma / precipFromKma", () => {
   it("PTY=3 → SNOW", () => expect(precipFromKma("3")).toBe("SNOW"))
   it("PTY=2 → RAIN_SNOW", () => expect(precipFromKma("2")).toBe("RAIN_SNOW"))
 })
+
+describe("skyFromKma — 경계값", () => {
+  it("빈 문자열 → CLOUDY fallback", () => {
+    expect(skyFromKma("")).toBe("CLOUDY")
+  })
+})
