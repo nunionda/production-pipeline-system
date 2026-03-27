@@ -5,6 +5,7 @@ import { ShootingDayClient } from "./shooting-day-client";
 import { fetchWeather } from "@/lib/weather";
 import { WeatherForecast } from "@/components/weather-forecast";
 import { TelegramSendButton } from "./telegram-send-button";
+import { CallsheetShareButton } from "./callsheet-share-button";
 
 export default async function ShootingDayPage({
   params,
@@ -102,21 +103,29 @@ export default async function ShootingDayPage({
           </p>
         </div>
 
-        {/* PDF download button */}
-        <a
-          href={`/api/projects/${id}/schedules/${scheduleId}/shooting-days/${dayId}/call-sheet/pdf`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          콜시트 PDF
-        </a>
-        <TelegramSendButton
-          projectId={id}
-          scheduleId={scheduleId}
-          dayId={dayId}
-          hasTelegramGroup={!!project?.telegramChatId}
-        />
+        {/* Header action buttons */}
+        <div className="flex items-center gap-2">
+          <a
+            href={`/api/projects/${id}/schedules/${scheduleId}/shooting-days/${dayId}/call-sheet/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            콜시트 PDF
+          </a>
+          <CallsheetShareButton
+            projectId={id}
+            scheduleId={scheduleId}
+            dayId={dayId}
+            hasCallSheet={day.callSheets.length > 0}
+          />
+          <TelegramSendButton
+            projectId={id}
+            scheduleId={scheduleId}
+            dayId={dayId}
+            hasTelegramGroup={!!project?.telegramChatId}
+          />
+        </div>
       </div>
 
       {weather && day.location && (
