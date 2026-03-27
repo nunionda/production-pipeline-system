@@ -1,7 +1,10 @@
 // src/lib/telegram.ts
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const BASE_URL = "https://api.telegram.org/bot";
+
+function getBotToken(): string | undefined {
+  return process.env.TELEGRAM_BOT_TOKEN;
+}
 
 // ──────────────────────────────────────────────
 // Bot API 래퍼
@@ -11,9 +14,10 @@ export async function sendMessage(
   chatId: string | number,
   text: string
 ): Promise<boolean> {
-  if (!BOT_TOKEN) return false;
+  const token = getBotToken();
+  if (!token) return false;
   try {
-    const res = await fetch(`${BASE_URL}${BOT_TOKEN}/sendMessage`, {
+    const res = await fetch(`${BASE_URL}${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
@@ -33,7 +37,8 @@ export async function sendDocument(
   caption?: string,
   mimeType = "application/pdf"
 ): Promise<boolean> {
-  if (!BOT_TOKEN) return false;
+  const token = getBotToken();
+  if (!token) return false;
   try {
     const form = new FormData();
     form.append("chat_id", String(chatId));
@@ -43,7 +48,7 @@ export async function sendDocument(
       filename
     );
     if (caption) form.append("caption", caption);
-    const res = await fetch(`${BASE_URL}${BOT_TOKEN}/sendDocument`, {
+    const res = await fetch(`${BASE_URL}${token}/sendDocument`, {
       method: "POST",
       body: form,
       // @ts-expect-error Next.js fetch extension
@@ -56,10 +61,11 @@ export async function sendDocument(
 }
 
 export async function setWebhook(url: string): Promise<boolean> {
-  if (!BOT_TOKEN) return false;
+  const token = getBotToken();
+  if (!token) return false;
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
   try {
-    const res = await fetch(`${BASE_URL}${BOT_TOKEN}/setWebhook`, {
+    const res = await fetch(`${BASE_URL}${token}/setWebhook`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -181,8 +187,8 @@ export function parseTelegramUpdate(body: unknown): TelegramUpdate | null {
     return null;
   }
   const msg = (body as Record<string, unknown>).message as Record<string, unknown>;
-  const from = msg.from as Record<string, unknown> | undefined;
-  const chatId = from?.id;
+  const chat = msg.chat as Record<string, unknown> | undefined;
+  const chatId = chat?.id;
   const text = msg.text;
   if (typeof chatId !== "number" || typeof text !== "string") return null;
   return { chatId, text };

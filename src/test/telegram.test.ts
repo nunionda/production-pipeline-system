@@ -155,9 +155,10 @@ describe("buildNotifyMessage", () => {
 // ──────────────────────────────────────────────
 
 describe("parseTelegramUpdate", () => {
-  it("유효한 /start 메시지를 파싱한다", () => {
+  it("유효한 /start 메시지를 파싱한다 (chat.id 사용)", () => {
     const body = {
       message: {
+        chat: { id: 123456 },
         from: { id: 123456 },
         text: "/start",
       },
@@ -166,14 +167,26 @@ describe("parseTelegramUpdate", () => {
     expect(result).toEqual({ chatId: 123456, text: "/start" })
   })
 
+  it("그룹 메시지에서 chat.id와 from.id가 다를 때 chat.id를 사용한다", () => {
+    const body = {
+      message: {
+        chat: { id: -100987654 },  // group chat id
+        from: { id: 123456 },      // sender id
+        text: "hello",
+      },
+    }
+    const result = parseTelegramUpdate(body)
+    expect(result).toEqual({ chatId: -100987654, text: "hello" })
+  })
+
   it("message 필드가 없으면 null을 반환한다", () => {
     expect(parseTelegramUpdate({ update_id: 1 })).toBeNull()
   })
 
-  it("from.id가 없으면 null을 반환한다", () => {
+  it("chat.id가 없으면 null을 반환한다", () => {
     const body = {
       message: {
-        from: {},
+        chat: {},
         text: "/start",
       },
     }
@@ -183,7 +196,7 @@ describe("parseTelegramUpdate", () => {
   it("text 필드가 없으면 null을 반환한다", () => {
     const body = {
       message: {
-        from: { id: 123456 },
+        chat: { id: 123456 },
       },
     }
     expect(parseTelegramUpdate(body)).toBeNull()

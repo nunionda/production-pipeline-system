@@ -23,7 +23,7 @@ model User {
 
   // 텔레그램
   telegramChatId   String?   // 개인 DM chat_id (봇과 연결 후 저장)
-  telegramLinkCode String?   // /start 연결용 일회성 코드 (연결 완료 후 null)
+  telegramLinkCode String?   @unique // /start 연결용 일회성 코드 (연결 완료 후 null)
 
   // Relations
   projects       ProjectMember[]
