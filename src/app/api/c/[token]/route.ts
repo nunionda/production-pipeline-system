@@ -14,7 +14,17 @@ export async function GET(_req: NextRequest, { params }: Params) {
     include: {
       callSheet: true,
       shootingDay: {
-        select: { date: true, location: true, callTime: true, notes: true },
+        select: {
+          date: true,
+          location: true,
+          callTime: true,
+          notes: true,
+          schedule: {
+            select: {
+              project: { select: { title: true } },
+            },
+          },
+        },
       },
     },
   });
