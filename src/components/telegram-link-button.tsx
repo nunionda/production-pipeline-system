@@ -49,10 +49,6 @@ export function TelegramLinkButton({ userId, isLinked }: Props) {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  if (error) {
-    return <span className="text-xs text-red-600">{error}</span>;
-  }
-
   if (deepLink) {
     return (
       <div className="flex items-center gap-2">
@@ -70,12 +66,15 @@ export function TelegramLinkButton({ userId, isLinked }: Props) {
   }
 
   return (
-    <button
-      onClick={handleGenerate}
-      disabled={loading}
-      className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-    >
-      📱 {loading ? "생성 중…" : "텔레그램 연결"}
-    </button>
+    <div className="flex flex-col gap-1">
+      <button
+        onClick={handleGenerate}
+        disabled={loading}
+        className="inline-flex items-center gap-1 rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+      >
+        📱 {loading ? "생성 중…" : "텔레그램 연결"}
+      </button>
+      {error && <span className="text-xs text-red-600">{error}</span>}
+    </div>
   );
 }
