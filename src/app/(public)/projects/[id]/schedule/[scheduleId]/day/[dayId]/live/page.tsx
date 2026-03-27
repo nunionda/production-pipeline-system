@@ -47,6 +47,7 @@ export default async function LiveViewPage({ params }: Params) {
     <LiveViewClient
       projectTitle={project?.title ?? ""}
       shootDate={shootDate}
+      shootLocation={day.location}
       dayId={dayId}
       projectId={id}
       scheduleId={scheduleId}
