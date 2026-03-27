@@ -1,4 +1,4 @@
-import type { SkyCondition, PrecipType } from "./weather-types"
+import type { HourlyForecast, SkyCondition, PrecipType } from "./weather-types"
 
 /** 한국 좌표 범위 판정 */
 export function isKoreanCoord(lat: number, lng: number): boolean {
@@ -100,5 +100,78 @@ export function precipFromKma(ptyCode: string): PrecipType {
     case "3": return "SNOW"
     case "4": return "RAIN"
     default:  return "NONE"
+  }
+}
+
+/**
+ * 기상청 단기예보 API를 호출해 targetDate 당일의 시간별 예보를 반환한다.
+ * 실패 시 null 반환 (throw 없음).
+ */
+export async function fetchKmaForecast(
+  lat: number,
+  lng: number,
+  targetDate: Date
+): Promise<HourlyForecast[] | null> {
+  try {
+    const serviceKey = process.env.KMA_SERVICE_KEY
+    if (!serviceKey) return null
+
+    const { nx, ny } = latLngToGrid(lat, lng)
+    const { base_date, base_time } = getKmaBaseTime(new Date())
+
+    const url = new URL("https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst")
+    url.searchParams.set("serviceKey", serviceKey)
+    url.searchParams.set("numOfRows", "300")
+    url.searchParams.set("pageNo", "1")
+    url.searchParams.set("dataType", "JSON")
+    url.searchParams.set("base_date", base_date)
+    url.searchParams.set("base_time", base_time)
+    url.searchParams.set("nx", String(nx))
+    url.searchParams.set("ny", String(ny))
+
+    const res = await fetch(url.toString(), { next: { revalidate: 3600 } })
+    if (!res.ok) return null
+
+    const json = await res.json()
+    const items: Array<{ category: string; fcstDate: string; fcstTime: string; fcstValue: string }> =
+      json?.response?.body?.items?.item ?? []
+
+    if (items.length === 0) return null
+
+    // targetDate의 날짜 문자열 (YYYYMMDD, KST)
+    const kst = new Date(targetDate.getTime() + 9 * 60 * 60 * 1000)
+    const yyyy = kst.getUTCFullYear()
+    const mm = String(kst.getUTCMonth() + 1).padStart(2, "0")
+    const dd = String(kst.getUTCDate()).padStart(2, "0")
+    const targetDateStr = `${yyyy}${mm}${dd}`
+
+    // 해당 날짜 아이템만 필터링, 시간별로 그룹화
+    const byHour = new Map<number, { TMP?: string; SKY?: string; PTY?: string; POP?: string; WSD?: string }>()
+    for (const item of items) {
+      if (item.fcstDate !== targetDateStr) continue
+      const hour = parseInt(item.fcstTime.slice(0, 2), 10)
+      if (!byHour.has(hour)) byHour.set(hour, {})
+      const entry = byHour.get(hour)!
+      if (["TMP", "SKY", "PTY", "POP", "WSD"].includes(item.category)) {
+        ;(entry as Record<string, string>)[item.category] = item.fcstValue
+      }
+    }
+
+    const hours = Array.from(byHour.keys()).sort((a, b) => a - b)
+    if (hours.length === 0) return null
+
+    return hours.map((hour) => {
+      const e = byHour.get(hour)!
+      return {
+        hour,
+        temp: Math.round(parseFloat(e.TMP ?? "0")),
+        sky: skyFromKma(e.SKY ?? "1"),
+        precip: precipFromKma(e.PTY ?? "0"),
+        precipProb: parseInt(e.POP ?? "0", 10),
+        windSpeed: parseFloat(e.WSD ?? "0"),
+      }
+    })
+  } catch {
+    return null
   }
 }
