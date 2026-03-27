@@ -2,6 +2,8 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { ShootingDayClient } from "./shooting-day-client";
+import { fetchWeather } from "@/lib/weather";
+import { WeatherForecast } from "@/components/weather-forecast";
 
 export default async function ShootingDayPage({
   params,
@@ -52,6 +54,12 @@ export default async function ShootingDayPage({
 
   if (!day) notFound();
 
+  // 과거 날짜는 날씨 예보 불필요
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const isPast = new Date(day.date) < today
+  const weather = isPast ? null : await fetchWeather(day.location, day.date)
+
   const dayNumber = allDays.findIndex((d) => d.id === dayId) + 1;
 
   const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
@@ -99,6 +107,10 @@ export default async function ShootingDayPage({
           콜시트 PDF
         </a>
       </div>
+
+      {weather && day.location && (
+        <WeatherForecast forecast={weather} location={day.location} />
+      )}
 
       <ShootingDayClient
         projectId={id}
