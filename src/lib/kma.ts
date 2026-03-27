@@ -1,4 +1,4 @@
-import type { HourlyForecast, SkyCondition, PrecipType } from "./weather-types"
+import type { SkyCondition, PrecipType } from "./weather-types"
 
 /** 한국 좌표 범위 판정 */
 export function isKoreanCoord(lat: number, lng: number): boolean {
@@ -54,14 +54,14 @@ export function getKmaBaseTime(now: Date): { base_date: string; base_time: strin
   const totalMin = hour * 60 + minute
 
   const baseTimes = [
-    { min: 3 * 60, time: "0200" },
-    { min: 6 * 60, time: "0500" },
-    { min: 9 * 60, time: "0800" },
-    { min: 12 * 60, time: "1100" },
-    { min: 15 * 60, time: "1400" },
-    { min: 18 * 60, time: "1700" },
-    { min: 21 * 60, time: "2000" },
-    { min: 24 * 60, time: "2300" },
+    { min: 2 * 60 + 10, time: "0200" },
+    { min: 5 * 60 + 10, time: "0500" },
+    { min: 8 * 60 + 10, time: "0800" },
+    { min: 11 * 60 + 10, time: "1100" },
+    { min: 14 * 60 + 10, time: "1400" },
+    { min: 17 * 60 + 10, time: "1700" },
+    { min: 20 * 60 + 10, time: "2000" },
+    { min: 23 * 60 + 10, time: "2300" },
   ]
 
   let selectedTime = "2300"

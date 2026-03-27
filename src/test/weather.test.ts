@@ -38,8 +38,14 @@ describe("getKmaBaseTime", () => {
     expect(base_date).toBe("20260415")
     expect(base_time).toBe("0500")
   })
-  it("오전 2시 30분은 전날 2300 회차 사용", () => {
+  it("오전 2시 30분은 0200 회차 사용 (발표 후 30분 경과)", () => {
     const d = new Date("2026-04-15T02:30:00+09:00")
+    const { base_date, base_time } = getKmaBaseTime(d)
+    expect(base_date).toBe("20260415")
+    expect(base_time).toBe("0200")
+  })
+  it("오전 2시 05분은 전날 2300 회차 사용 (0200 발표 전)", () => {
+    const d = new Date("2026-04-15T02:05:00+09:00")
     const { base_date, base_time } = getKmaBaseTime(d)
     expect(base_date).toBe("20260414")
     expect(base_time).toBe("2300")
