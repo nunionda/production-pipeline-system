@@ -65,6 +65,21 @@ export async function GET(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
+  // dayNumber 계산을 위해 관련 스케줄의 모든 촬영일을 미리 조회
+  const scheduleIds = [...new Set(days.map((d) => d.scheduleId))];
+  const schedulesDays = await db.shootingDay.findMany({
+    where: { scheduleId: { in: scheduleIds } },
+    orderBy: { date: "asc" },
+    select: { id: true, scheduleId: true },
+  });
+  // scheduleId → ordered dayIds map
+  const scheduleDayMap = new Map<string, string[]>();
+  for (const d of schedulesDays) {
+    const arr = scheduleDayMap.get(d.scheduleId) ?? [];
+    arr.push(d.id);
+    scheduleDayMap.set(d.scheduleId, arr);
+  }
+
   type DayResult = { dayId: string; ok: boolean; error?: string };
   const results: DayResult[] = [];
 
@@ -76,12 +91,8 @@ export async function GET(req: NextRequest) {
       const chatId = project.telegramChatId!;
 
       // Compute day number within the schedule
-      const allDays = await db.shootingDay.findMany({
-        where: { scheduleId: day.scheduleId },
-        orderBy: { date: "asc" },
-        select: { id: true },
-      });
-      const dayNumber = allDays.findIndex((d) => d.id === day.id) + 1;
+      const dayIds = scheduleDayMap.get(day.scheduleId) ?? [];
+      const dayNumber = dayIds.findIndex((id) => id === day.id) + 1;
 
       // Build share URL — reuse existing non-expired share if available
       let shareUrl = `${appUrl}/projects/${project.id}/schedule/${day.scheduleId}/day/${day.id}`;
