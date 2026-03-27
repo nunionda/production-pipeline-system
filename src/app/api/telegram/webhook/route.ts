@@ -6,14 +6,15 @@ import { sendMessage, parseTelegramUpdate } from "@/lib/telegram";
 // Telegram Bot API가 호출하는 webhook 엔드포인트
 // 항상 200 반환 (텔레그램 재전송 방지)
 export async function POST(req: NextRequest) {
-  // X-Telegram-Bot-Api-Secret-Token 헤더 검증
+  // X-Telegram-Bot-Api-Secret-Token 헤더 검증 — fail closed
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
-  if (secret) {
-    const headerSecret = req.headers.get("X-Telegram-Bot-Api-Secret-Token");
-    if (headerSecret !== secret) {
-      // 200 반환해야 Telegram이 재시도하지 않음
-      return NextResponse.json({ ok: false }, { status: 200 });
-    }
+  if (!secret) {
+    console.error("[telegram/webhook] TELEGRAM_WEBHOOK_SECRET not configured");
+    return NextResponse.json({ ok: false }, { status: 200 });
+  }
+  const headerSecret = req.headers.get("X-Telegram-Bot-Api-Secret-Token");
+  if (headerSecret !== secret) {
+    return NextResponse.json({ ok: false }, { status: 200 });
   }
 
   let body: unknown;

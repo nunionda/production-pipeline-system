@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { groupByRole } from "@/lib/team";
+import { groupByRole, checkProjectMembership } from "@/lib/team";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { TeamDirectoryPDF } from "@/components/team-directory-pdf";
 import ExcelJS from "exceljs";
@@ -14,9 +14,14 @@ type Params = { params: Promise<{ id: string }> };
 // GET /api/projects/[id]/team/export?format=pdf|excel
 export async function GET(req: NextRequest, { params }: Params) {
   const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
+
+  const membership = await checkProjectMembership(db, session.user.id, id);
+  if (!membership) {
+    return NextResponse.json({ error: "프로젝트 접근 권한 없음" }, { status: 403 });
+  }
   const format = req.nextUrl.searchParams.get("format") ?? "pdf";
 
   const [project, members] = await Promise.all([

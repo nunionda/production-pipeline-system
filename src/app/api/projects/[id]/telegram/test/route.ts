@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { sendMessage } from "@/lib/telegram";
+import { checkProjectMembership } from "@/lib/team";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -10,6 +12,11 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id: projectId } = await params;
+
+  const membership = await checkProjectMembership(db, session.user.id, projectId);
+  if (!membership) {
+    return NextResponse.json({ error: "프로젝트 접근 권한 없음" }, { status: 403 });
+  }
   const { chatId } = (await req.json()) as { chatId: string };
 
   if (!chatId) return NextResponse.json({ error: "chatId 필수" }, { status: 400 });

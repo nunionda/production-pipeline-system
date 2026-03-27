@@ -1,5 +1,38 @@
 # TODOS — nunionda
 
+## P2: Security (Adversarial Review 발견)
+
+### telegramLinkCode에 @unique 제약 조건 추가
+**What:** `User.telegramLinkCode` 필드에 `@unique` 추가 + 코드 생성 시 재시도 로직
+**Why:** 두 사용자가 동시에 코드를 생성하면 동일한 6자 코드가 발생할 수 있음. 웹훅이 `findFirst`로 조회하므로 잘못된 사용자에게 연결될 위험
+**Effort:** S human / S CC+gstack
+**Priority:** P2
+
+### parseTelegramUpdate: from.id → chat.id 변경
+**What:** `src/lib/telegram.ts`의 `parseTelegramUpdate`에서 `msg.from.id` 대신 `msg.chat.id` 사용
+**Why:** 현재 private 메시지에서는 동작하지만 의미적으로 잘못됨. 그룹 메시지 핸들러 추가 시 버그 발생
+**Effort:** S human / S CC+gstack
+**Priority:** P2
+
+### BOT_TOKEN 모듈 스코프 → 함수 스코프로 이동
+**What:** `src/lib/telegram.ts` 상단의 `const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN`을 각 함수 내부로 이동
+**Why:** 빌드 타임에 import되면 `undefined`로 고정되어 모든 `sendMessage`가 실패
+**Effort:** S human / S CC+gstack
+**Priority:** P2
+
+### Weather API geocoding 캐싱 + 중복 제거
+**What:** 동일 주소에 대한 geocode() 호출 중복 제거 + 결과 캐싱
+**Why:** 30개 촬영일이 같은 장소면 30번 동일한 Kakao API 호출 발생 → rate limit 위험
+**Effort:** S human / S CC+gstack
+**Priority:** P2
+
+### 콜시트 공유 토큰 rate limiting
+**What:** `/api/c/[token]` 공개 엔드포인트에 rate limiting 추가
+**Why:** 토큰 열거 공격으로 타 프로젝트 콜시트 접근 가능성 (CUID 기반이라 추측 어렵지만 방어층 추가 권장)
+**Effort:** S human / S CC+gstack
+**Priority:** P2
+**Depends on:** rate limiting 미들웨어 선택 (upstash/ratelimit 등)
+
 ## P3: Deferred / Nice-to-Have
 
 ### SSE 멀티 인스턴스 대응 — Redis Pub/Sub

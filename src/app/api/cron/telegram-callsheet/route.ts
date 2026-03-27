@@ -14,13 +14,15 @@ import {
 // Called daily at UTC 10:00 (KST 19:00) by Vercel Cron.
 // Sends callsheets for tomorrow's shooting days across all projects.
 export async function GET(req: NextRequest) {
-  // Verify cron secret if configured
+  // Verify cron secret — fail closed (reject if not configured)
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const authHeader = req.headers.get("authorization");
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (!cronSecret) {
+    console.error("[cron/telegram-callsheet] CRON_SECRET not configured");
+    return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+  }
+  const authHeader = req.headers.get("authorization");
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   // Compute tomorrow's date range (UTC midnight to midnight)

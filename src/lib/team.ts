@@ -37,6 +37,22 @@ export type RoleGroup = {
   members: MemberWithUser[];
 };
 
+/**
+ * Check if a user is a member of the given project.
+ * Returns the member record if found, null otherwise.
+ */
+export async function checkProjectMembership(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: any,
+  userId: string,
+  projectId: string
+): Promise<{ id: string; role: string } | null> {
+  return db.projectMember.findFirst({
+    where: { userId, projectId },
+    select: { id: true, role: true },
+  });
+}
+
 export function groupByRole(members: MemberWithUser[]): RoleGroup[] {
   const map = new Map<string, MemberWithUser[]>();
 

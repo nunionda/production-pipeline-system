@@ -10,6 +10,7 @@ import {
   buildCallsheetMessage,
   buildDmMessage,
 } from "@/lib/telegram";
+import { checkProjectMembership } from "@/lib/team";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -22,6 +23,13 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 
   const { id: projectId } = await params;
+
+  // 프로젝트 멤버십 확인
+  const membership = await checkProjectMembership(db, session.user.id, projectId);
+  if (!membership) {
+    return NextResponse.json({ error: "프로젝트 접근 권한 없음" }, { status: 403 });
+  }
+
   const { dayId, scheduleId } = (await req.json()) as {
     dayId: string;
     scheduleId: string;
