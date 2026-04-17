@@ -21,10 +21,17 @@ bun run db:reset         # DB 리셋 + 마이그레이션 재적용
 
 - **Frontend:** Next.js 16 (App Router) + React 19
 - **UI:** Tailwind CSS 4 + Pretendard 폰트
-- **ORM:** Prisma 7 + @prisma/adapter-pg
-- **DB:** PostgreSQL (로컬 개발: localhost:5432/nunionda)
+- **ORM:** Prisma 7 + @prisma/adapter-better-sqlite3
+- **DB:** SQLite (로컬 개발: `./dev.db` — local-first, 외부 서버 불필요)
 - **Auth:** NextAuth.js v5 (beta) — Credentials provider
 - **Language:** TypeScript, 전체 UI 한국어
+
+## Local-first 정책
+
+이 앱은 외부 서버 의존성이 없도록 설계됐다. SQLite 단일 파일 DB를 사용하므로
+`bun install && bun run db:setup && bun run dev` 만으로 전체 시스템 가동.
+
+이전 Postgres + Docker 구성은 `docker.legacy/`에 보존되어 있다.
 
 ## Project Structure
 
@@ -71,9 +78,12 @@ prisma/
 ## Prisma 7 주의사항
 
 - `datasource` URL은 `prisma.config.ts`에서 설정 (schema.prisma에 url 없음)
-- PrismaClient는 `@prisma/adapter-pg`의 `PrismaPg` 어댑터 필요
+- PrismaClient는 `@prisma/adapter-better-sqlite3`의 `PrismaBetterSqlite3` 어댑터 사용
+  - 클래스명 카멜케이스 주의: `Sqlite` (not `SQLite`)
 - Import: `from "@/generated/prisma/client"` (not `@/generated/prisma`)
 - 시드 스크립트에서 `import "dotenv/config"` 필수
+- **`prisma/seed.ts` 는 Bun이 아닌 Node + tsx로 실행** (`better-sqlite3` 가 Bun 런타임에서 미지원).
+  `db:seed` 스크립트가 `bunx tsx` 사용
 
 ## 로그인 정보 (개발용)
 

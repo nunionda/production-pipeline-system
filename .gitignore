@@ -49,3 +49,21 @@ next-env.d.ts
 /playwright-report/
 /test-results/
 .worktrees/
+
+# SQLite local DB (Postgres → SQLite migration)
+/dev.db
+/dev.db-journal
+/dev.db-wal
+/dev.db-shm
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Generated Prisma client
+/src/generated/
+
+# Local env
+.env
+.env.local
+.env*.local
