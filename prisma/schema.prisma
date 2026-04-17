@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 // ──────────────────────────────────────────────
@@ -16,6 +16,7 @@ model User {
   name           String
   email          String    @unique
   hashedPassword String
+  phone          String?
   role           UserRole  @default(STAFF)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt

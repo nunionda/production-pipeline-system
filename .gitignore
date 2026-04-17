@@ -30,8 +30,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (commit only .env.example, ignore actual secrets)
+.env
 
 # vercel
 .vercel
@@ -49,3 +49,20 @@ next-env.d.ts
 /playwright-report/
 /test-results/
 .worktrees/
+
+# SQLite local DB (Postgres → SQLite migration)
+/dev.db
+/dev.db-journal
+/dev.db-wal
+/dev.db-shm
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Generated Prisma client
+/src/generated/
+
+# Local env (real values; .env.example is committed)
+.env.local
+.env*.local
