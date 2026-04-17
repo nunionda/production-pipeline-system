@@ -101,22 +101,25 @@ function selectProvider(): { provider: Provider; apiKey: string } {
  * 씬 경계를 기준으로 10-15씬씩 분할.
  */
 export function splitIntoChunks(text: string, chunkSize = 12): string[] {
-  const scenePattern = /(?=(?:^|\n)(?:S#\d+|#\d+\.|씬\s*\d+|신\s*\d+))/g;
+  // Non-zero-width pattern: anchored newline prefix. A lookahead-only regex
+  // with the /g flag never advances lastIndex, producing an infinite loop
+  // that grows `boundaries` until V8 throws RangeError: Invalid array length.
+  const scenePattern = /(?:^|\n)(?:S#\d+|#\d+\.|씬\s*\d+|신\s*\d+)/g;
   const boundaries: number[] = [0];
 
-  let match;
-  while ((match = scenePattern.exec(text)) !== null) {
-    if (match.index > 0) boundaries.push(match.index);
+  for (const m of text.matchAll(scenePattern)) {
+    const idx = text.charAt(m.index!) === "\n" ? m.index! + 1 : m.index!;
+    if (idx > boundaries[boundaries.length - 1]!) boundaries.push(idx);
   }
 
   if (boundaries.length <= 1) return [text];
 
   const chunks: string[] = [];
   for (let i = 0; i < boundaries.length; i += chunkSize) {
-    const start = boundaries[i];
+    const start = boundaries[i]!;
     const end =
       i + chunkSize < boundaries.length
-        ? boundaries[i + chunkSize]
+        ? boundaries[i + chunkSize]!
         : text.length;
     chunks.push(text.slice(start, end));
   }

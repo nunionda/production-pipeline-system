@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Document,
   Page,
@@ -9,16 +7,17 @@ import {
   Font,
 } from "@react-pdf/renderer";
 
-// Register Korean font
+// Register Korean font.
+// Previous gstatic URLs returned 404; jsDelivr @fontsource CDN is stable.
 Font.register({
   family: "NotoSansKR",
   fonts: [
     {
-      src: "https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgm20xz64px_1hVWr0wuPNGmlQNMEfD4.0.woff2",
+      src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-kr/files/noto-sans-kr-all-400-normal.woff",
       fontWeight: 400,
     },
     {
-      src: "https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgm20xz64px_1hVWr0wuPNGmlQNMEfD4.9.woff2",
+      src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-kr/files/noto-sans-kr-all-700-normal.woff",
       fontWeight: 700,
     },
   ],
