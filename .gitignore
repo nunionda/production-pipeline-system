@@ -30,8 +30,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (commit only .env.example, ignore actual secrets)
+.env
 
 # vercel
 .vercel
@@ -63,7 +63,6 @@ next-env.d.ts
 # Generated Prisma client
 /src/generated/
 
-# Local env
-.env
+# Local env (real values; .env.example is committed)
 .env.local
 .env*.local
